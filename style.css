@@ -1,0 +1,42 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.controls label {
+  margin-right: 5px;
+}
+
+#search {
+  flex: 1;
+  padding: 5px;
+  min-width: 200px;
+}
+
+#threshold {
+  width: 150px;
+}
+
+#results {
+  margin-top: 20px;
+  list-style: none;
+  padding: 0;
+}
+
+#results li {
+  background: #f9f9f9;
+  margin-bottom: 5px;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
