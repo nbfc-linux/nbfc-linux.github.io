@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NBFC-Linux Config Search</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="index.html">Back</a/>
+
+  <h1>NBFC-Linux Config Search</h1>
+
+  <p class="note">
+    Type in the search field the output of the following command to filter the configs:
+  </p>
+  <pre>
+#!/bin/bash
+
+VENDOR=$(cat /sys/class/dmi/id/sys_vendor)
+PRODUCT=$(cat /sys/class/dmi/id/product_name)
+if grep -q -F "$VENDOR" &lt;&lt;&lt; "$PRODUCT"; then
+  echo "$PRODUCT"
+else
+  echo "$VENDOR $PRODUCT"
+fi
+  </pre>
+
+  <div class="controls">
+    <label for="search">Search:</label>
+    <input type="text" id="search" placeholder="Type to filter…">
+
+    <label for="threshold">Similarity (%): <span id="threshold-value">50</span></label>
+    <input type="range" id="threshold" min="0" max="100" value="50">
+  </div>
+
+  <ul id="results"></ul>
+
+  <script src="str_similarity.js"></script>
+  <script src="config_data.js"></script>
+  <script src="config.js"></script>
+</body>
+</html>

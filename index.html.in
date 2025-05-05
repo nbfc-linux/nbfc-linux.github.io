@@ -39,22 +39,22 @@
       <tbody>
         <tr>
           <td>Arch Linux</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.13/nbfc-linux-git-0.3.12.r4.gd79e346-1-x86_64.pkg.tar.zst">Download 0.3.13 (136)</a></td>
+          <td><a href="%NBFC_LINUX_ARCHLINUX_URL%">Download %NBFC_LINUX_TAG% (%NBFC_LINUX_ARCHLINUX_KB%)</a></td>
           <td>TODO</td>
         </tr>
         <tr>
           <td>Debian (Bookworm)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.13/nbfc-linux_0.3.13_amd64.deb">Download 0.3.13 (116)</a></td>
+          <td><a href="%NBFC_LINUX_DEBIAN_URL%">Download %NBFC_LINUX_TAG% (%NBFC_LINUX_DEBIAN_KB%)</a></td>
           <td>TODO</td>
         </tr>
         <tr>
           <td>Fedora 42 (Adams)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.13/fedora-nbfc-linux-0.3.13-1.x86_64.rpm">Download 0.3.13 (141)</a></td>
+          <td><a href="%NBFC_LINUX_FEDORA_URL%">Download %NBFC_LINUX_TAG% (%NBFC_LINUX_FEDORA_KB%)</a></td>
           <td>TODO</td>
         </tr>
         <tr>
           <td>OpenSuse (Tumbleweed)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.13/opensuse-nbfc-linux-0.3.13-1.x86_64.rpm">Download 0.3.13 (140)</a></td>
+          <td><a href="%NBFC_LINUX_OPENSUSE_URL%">Download %NBFC_LINUX_TAG% (%NBFC_LINUX_OPENSUSE_KB%)</a></td>
           <td>TODO</td>
         </tr>
       </tbody>
