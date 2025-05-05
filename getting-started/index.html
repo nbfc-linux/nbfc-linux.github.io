@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NBFC-Linux - Getting Started</title>
+  </head>
+  <body>
+    <h1>Getting Started</h1>
+    <p>
+      When running <b>NBFC-Linux</b> for the first time, you need to select a configuration file that matches your laptop model.<br />
+      Here’s how to get started:
+    </p>
+
+    <h2>Update available configurations</h2>
+    <p>
+      Run the following command to download the latest configuration files:
+      <pre>sudo nbfc update</pre>
+    </p>
+
+    <h2>Automatically select a matching configuration</h2>
+    <p>
+      Try this command to automatically detect and set a suitable configuration:
+      <pre>sudo nbfc config -s auto</pre>
+    </p>
+
+    <h2>Find recommended configurations</h2>
+    <p>
+      If auto-detection fails, you can get a list of configurations with a similar name:
+      <pre>nbfc config -r</pre>
+    </p>
+
+    <h2>Set a configuration</h2>
+    <p>
+      To set a configuration for a model, use:
+      <pre>sudo nbfc config -s &lt;MODEL&gt;</pre>
+    </p>
+
+    <h2>Start the service</h2>
+    <p>
+      Once a configuration is set, you can start the service:
+      <pre>sudo nbfc start</pre>
+    </p>
+
+    <h2>Query the service</h2>
+    <p>
+      You can query the service using:
+      <pre>nbfc status</pre>
+    </p>
+
+    <h2>Start the service automatically at boot</h2>
+    <p>
+      To enable NBFC to start with the system:
+      <pre>sudo systemctl enable nbfc_service</pre>
+    </p>
+  </body>
+</html>
