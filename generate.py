@@ -5,13 +5,10 @@ import sys
 import json
 import requests
 
-OWNER = "nbfc-linux"
-REPO  = "nbfc-linux"
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def make_index_html():
-    with open('index.html.in', 'r', encoding='UTF-8') as fh:
+    with open('index.in.html', 'r', encoding='UTF-8') as fh:
         content = fh.read()
 
     content = replace_nbfc_linux_download_vars(content)
@@ -19,7 +16,7 @@ def make_index_html():
     with open('index.html', 'w', encoding='UTF-8') as fh:
         fh.write(content)
 
-def make_config_data():
+def make_config_data_js():
     url = 'https://api.github.com/repos/nbfc-linux/configs/contents/1.0/configs';
     response = requests.get(url)
     response.raise_for_status()
@@ -29,13 +26,13 @@ def make_config_data():
     for file in files:
         config_data.append(file['name'].replace('.json', ''))
 
-    with open('config_data.js', 'w', encoding='UTF-8') as fh:
+    with open('configs/data.js', 'w', encoding='UTF-8') as fh:
         fh.write('const configs = ')
         json.dump(config_data, fh, indent=1)
         fh.write(';')
 
 def replace_nbfc_linux_download_vars(content):
-    url = f"https://api.github.com/repos/{OWNER}/{REPO}/releases/latest"
+    url = "https://api.github.com/repos/nbfc-linux/nbfc-linux/releases/latest"
     response = requests.get(url)
     response.raise_for_status()
     releases = response.json()
@@ -84,4 +81,4 @@ def replace_nbfc_linux_download_vars(content):
     return content
 
 make_index_html()
-make_config_data()
+make_config_data_js()
