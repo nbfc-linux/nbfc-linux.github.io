@@ -1,0 +1,42 @@
+Write a complete HTML file that uses JavaScript to help users generate a ./configure command for a software build system.
+
+The page should:
+
+Contain a set of checkboxes for the following --disable- options.
+If a checkbox is checked, the corresponding flag should be included in the generated command.
+If it is unchecked, the flag should be omitted.
+
+The options are:
+
+--disable-syslog: Don't log to syslog in daemon mode
+
+--disable-ec-debug: Disable debugging of reads/writes from/to the embedded controller
+
+--disable-ec-dummy: Disable the dummy embedded controller implementation
+
+--disable-ec-dev-port: Disable the /dev/port embedded controller implementation
+
+--disable-ec-sys: Disable the embedded controller implementation that relies on the ec_sys kernel module
+
+--disable-ec-acpi: Disable the embedded controller implementation that relies on the acpi_ec kernel module
+
+The checkbox code should be easy to adapt, ideally by defining the options in an array with flags and descriptions.
+
+
+Include a dropdown (ComboBox) for the --with-init-system option.
+It should offer the values systemd, openrc, and systemv, with systemd selected by default.
+
+
+Include text input fields for these options, with the following default values:
+
+--prefix: default /usr
+
+--sysconfdir: default /etc
+
+--bindir: default /usr/bin
+
+
+Automatically regenerate the ./configure command and display it on the page whenever the user changes any of the checkboxes, dropdowns, or text inputs.
+
+The goal is to generate a user-friendly UI for dynamically building the correct ./configure command, with real-time updates.
+The result should be a clean, minimal HTML/JS page that could be used locally or embedded in documentation.
