@@ -12,6 +12,8 @@ def make_index_html():
         content = fh.read()
 
     content = replace_nbfc_linux_download_vars(content)
+    content = replace_nbfc_gtk_download_vars(content)
+    content = replace_nbfc_qt_download_vars(content)
 
     with open('index.html', 'w', encoding='UTF-8') as fh:
         fh.write(content)
@@ -77,6 +79,104 @@ def replace_nbfc_linux_download_vars(content):
     content = content.replace('%NBFC_LINUX_OPENSUSE_PACKAGE%',  OPENSUSE[0])
     content = content.replace('%NBFC_LINUX_OPENSUSE_URL%',      OPENSUSE[1])
     content = content.replace('%NBFC_LINUX_OPENSUSE_KB%',       OPENSUSE[2])
+
+    return content
+
+def replace_nbfc_gtk_download_vars(content):
+    url = "https://api.github.com/repos/nbfc-linux/nbfc-gtk/releases/latest"
+    response = requests.get(url)
+    response.raise_for_status()
+    releases = response.json()
+
+    TAG = releases['tag_name']
+    DEBIAN = None
+    FEDORA = None
+    ARCHLINUX = None
+    OPENSUSE = None
+
+    for release in releases['assets']:
+        name = release['name']
+        size = str(int(release['size'] / 1024))
+        url  = release['browser_download_url']
+
+        if name.endswith('.deb'):
+            DEBIAN = (name, url, size)
+
+        elif name.startswith('fedora-'):
+            FEDORA = (name, url, size)
+
+        elif name.startswith('opensuse-'):
+            OPENSUSE = (name, url, size)
+
+        elif name.endswith('pkg.tar.zst'):
+            ARCHLINUX = (name, url, size)
+
+    content = content.replace('%NBFC_GTK_TAG%', TAG)
+
+    content = content.replace('%NBFC_GTK_ARCHLINUX_PACKAGE%', ARCHLINUX[0])
+    content = content.replace('%NBFC_GTK_ARCHLINUX_URL%',     ARCHLINUX[1])
+    content = content.replace('%NBFC_GTK_ARCHLINUX_KB%',      ARCHLINUX[2])
+
+    content = content.replace('%NBFC_GTK_DEBIAN_PACKAGE%',    DEBIAN[0])
+    content = content.replace('%NBFC_GTK_DEBIAN_URL%',        DEBIAN[1])
+    content = content.replace('%NBFC_GTK_DEBIAN_KB%',         DEBIAN[2])
+
+    content = content.replace('%NBFC_GTK_FEDORA_PACKAGE%',    FEDORA[0])
+    content = content.replace('%NBFC_GTK_FEDORA_URL%',        FEDORA[1])
+    content = content.replace('%NBFC_GTK_FEDORA_KB%',         FEDORA[2])
+
+    content = content.replace('%NBFC_GTK_OPENSUSE_PACKAGE%',  OPENSUSE[0])
+    content = content.replace('%NBFC_GTK_OPENSUSE_URL%',      OPENSUSE[1])
+    content = content.replace('%NBFC_GTK_OPENSUSE_KB%',       OPENSUSE[2])
+
+    return content
+
+def replace_nbfc_qt_download_vars(content):
+    url = "https://api.github.com/repos/nbfc-linux/nbfc-qt/releases/latest"
+    response = requests.get(url)
+    response.raise_for_status()
+    releases = response.json()
+
+    TAG = releases['tag_name']
+    DEBIAN = None
+    FEDORA = None
+    ARCHLINUX = None
+    OPENSUSE = None
+
+    for release in releases['assets']:
+        name = release['name']
+        size = str(int(release['size'] / 1024))
+        url  = release['browser_download_url']
+
+        if name.endswith('.deb'):
+            DEBIAN = (name, url, size)
+
+        elif name.startswith('fedora-'):
+            FEDORA = (name, url, size)
+
+        elif name.startswith('opensuse-'):
+            OPENSUSE = (name, url, size)
+
+        elif name.endswith('pkg.tar.zst'):
+            ARCHLINUX = (name, url, size)
+
+    content = content.replace('%NBFC_QT_TAG%', TAG)
+
+    content = content.replace('%NBFC_QT_ARCHLINUX_PACKAGE%', ARCHLINUX[0])
+    content = content.replace('%NBFC_QT_ARCHLINUX_URL%',     ARCHLINUX[1])
+    content = content.replace('%NBFC_QT_ARCHLINUX_KB%',      ARCHLINUX[2])
+
+    content = content.replace('%NBFC_QT_DEBIAN_PACKAGE%',    DEBIAN[0])
+    content = content.replace('%NBFC_QT_DEBIAN_URL%',        DEBIAN[1])
+    content = content.replace('%NBFC_QT_DEBIAN_KB%',         DEBIAN[2])
+
+    content = content.replace('%NBFC_QT_FEDORA_PACKAGE%',    FEDORA[0])
+    content = content.replace('%NBFC_QT_FEDORA_URL%',        FEDORA[1])
+    content = content.replace('%NBFC_QT_FEDORA_KB%',         FEDORA[2])
+
+    content = content.replace('%NBFC_QT_OPENSUSE_PACKAGE%',  OPENSUSE[0])
+    content = content.replace('%NBFC_QT_OPENSUSE_URL%',      OPENSUSE[1])
+    content = content.replace('%NBFC_QT_OPENSUSE_KB%',       OPENSUSE[2])
 
     return content
 

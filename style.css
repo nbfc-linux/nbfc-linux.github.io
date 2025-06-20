@@ -1,0 +1,159 @@
+/* style.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  line-height: 1.6;
+  background: #f9f9f9;
+  color: #222;
+  scroll-behavior: smooth;
+}
+
+header {
+  background: #222;
+  color: white;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav {
+  margin-top: 1rem;
+}
+
+nav a {
+  margin-right: 1rem;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+section {
+  background: white;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  scroll-margin-top: 120px;
+}
+
+pre {
+  background: #eee;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+footer {
+  text-align: center;
+  margin: 4rem 0 1rem;
+  color: #777;
+  font-size: 0.9em;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+table thead {
+  background-color: #f0f0f0;
+}
+
+table th,
+table td {
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+table tr:hover {
+  background-color: #fafafa;
+}
+
+table a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+table a:hover {
+  text-decoration: underline;
+}
+
+/* Code Styling */
+code {
+  background-color: #f4f4f4;
+  padding: 0.2em 0.4em;
+  font-family: monospace;
+  font-size: 0.95em;
+  border-radius: 4px;
+  color: #222;
+}
+
+/* Ordered list spacing */
+ol {
+  padding-left: 1.4rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+ol li {
+  margin-bottom: 1rem;
+}
+
+/* Unordered list inside ordered list */
+ol li ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.2rem;
+}
+
+ol li ul li {
+  margin-bottom: 0.5rem;
+}
+
+/* Emphasis */
+em {
+  font-style: italic;
+  color: #555;
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.gallery figure {
+  width: 250px;
+  margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.5em;
+  background: #fafafa;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.gallery img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto 0.5em;
+}

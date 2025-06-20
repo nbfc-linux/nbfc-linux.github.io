@@ -1,69 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>NBFC-Linux</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NBFC-Linux</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
     <h1>NBFC-Linux</h1>
+    <nav>
+      <a href="#start">Home</a>
+      <a href="#downloads">Downloads</a>
+      <a href="#guis">Graphical Uses Interfaces</a>
+      <a href="#getting-started-with-the-gui">Getting Started With The GUI</a>
+      <a href="#getting-started-without-the-gui">Getting Started Without The GUI</a>
+      <a href="#screenshots">Screenshots</a>
+    </nav>
+  </header>
 
-    <p>
-      <b>NBFC-Linux</b> is a lightweight fan control daemon written in C.<br />
-      It is a port of Stefan Hirschmann’s <i>NoteBook FanControl</i> (NBFC) for Linux and offers similar functionality and configuration tools.
-    </p>
+  <main>
+    <section id="start">
+      <p>
+        <b>NBFC-Linux</b> is a lightweight fan control daemon written in C.<br />
+        It is a port of Stefan Hirschmann’s <i>NoteBook FanControl</i> (NBFC) for Linux and offers similar functionality and configuration tools.
+      </p>
 
-    <h2>Features</h2>
+      <h2>Features</h2>
+      <ul>
+        <li>Lightweight implementation (Service uses <b>~280KB</b> of RAM)</li>
+        <li>Support for a wide range of notebook models (<a href="configs/">Is my notebook model supported?</a>)</li>
+        <li>Graphical User Interfaces (GTK4, Qt6)</li>
+        <li>Configuration files can be fetched from the internet</li>
+        <li>Flexible fan sensor assignment via sensor name, sensor group (@GPU, @CPU), temperature file, or custom shell command</li>
+      </ul>
+    </section>
 
-    <ul>
-      <li>Lightweight implementation (Service uses <b>~280KB</b> of RAM)</li>
-      <li>Support for a wide range of notebook models (<a href="configs/">Is my notebook model supported?</a>)</li>
-      <li>Graphical User Interfaces (written in PyQt5)</li>
-      <li>Configuration files can be fetched from the internet</li>
-      <li>Flexible fan sensor assignment via sensor name, sensor group (@GPU, @CPU), temperature file, or custom shell command</li>
-    </ul>
+    <section id="downloads">
+      <h2>Downloads</h2>
 
-    <h2>Installation</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Operating System</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Arch Linux</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.19/nbfc-linux-git-0.3.18.r4.g656af52-1-x86_64.pkg.tar.zst">Download 0.3.19 (141KB)</a></td>
+          </tr>
+          <tr>
+            <td>Debian (Bookworm)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.19/nbfc-linux_0.3.19_amd64.deb">Download 0.3.19 (121KB)</a></td>
+          </tr>
+          <tr>
+            <td>Fedora 42 (Adams)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.19/fedora-nbfc-linux-0.3.19-1.x86_64.rpm">Download 0.3.19 (146KB)</a></td>
+          </tr>
+          <tr>
+            <td>OpenSuse (Tumbleweed)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.19/opensuse-nbfc-linux-0.3.19-1.x86_64.rpm">Download 0.3.19 (145KB)</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-    <h3>Packages</h3>
+    <section id="guis">
+      <h2>Graphical User Interfaces</h2>
+      <p>NBFC-Linux comes with graphical frontends for common desktop environments.</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Operating System</th>
-          <th>Download</th>
-          <th>Dependencies</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Arch Linux</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.18/nbfc-linux-git-0.3.17.r30.gf32b2c7-1-x86_64.pkg.tar.zst">Download 0.3.18 (140KB)</a></td>
-          <td> <pre>pacman -s --needed <b>curl</b> </pre> </td>
-        </tr>
-        <tr>
-          <td>Debian (Bookworm)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.18/nbfc-linux_0.3.18_amd64.deb">Download 0.3.18 (121KB)</a></td>
-          <td> <pre>apt install <b>libcurl4</b> </pre> </td>
-        </tr>
-        <tr>
-          <td>Fedora 42 (Adams)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.18/fedora-nbfc-linux-0.3.18-1.x86_64.rpm">Download 0.3.18 (146KB)</a></td>
-          <td> <pre>dnf install <b>libcurl</b> </pre> </td>
-        </tr>
-        <tr>
-          <td>OpenSuse (Tumbleweed)</td>
-          <td><a href="https://github.com/nbfc-linux/nbfc-linux/releases/download/0.3.18/opensuse-nbfc-linux-0.3.18-1.x86_64.rpm">Download 0.3.18 (145KB)</a></td>
-          <td> <pre>zypper install <b>libcurl4</b> </pre> </td>
-        </tr>
-      </tbody>
-    </table>
+      <h3>GTK4 GUI (for GNOME, XFCE, etc.)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Operating System</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Arch Linux</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-gtk/releases/download/0.2.1/nbfc-gtk-git-0.2.1-1-any.pkg.tar.zst">Download 0.2.1 (28KB)</a></td>
+          </tr>
+          <tr>
+            <td>Debian (Bookworm)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-gtk/releases/download/0.2.1/nbfc-gtk_0.2.1_amd64.deb">Download 0.2.1 (14KB)</a></td>
+          </tr>
+          <tr>
+            <td>Fedora 42 (Adams)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-gtk/releases/download/0.2.1/fedora-nbfc-gtk-0.2.1-1.x86_64.rpm">Download 0.2.1 (19KB)</a></td>
+          </tr>
+          <tr>
+            <td>OpenSuse (Tumbleweed)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-gtk/releases/download/0.2.1/opensuse-nbfc-gtk-0.2.1-1.x86_64.rpm">Download 0.2.1 (19KB)</a></td>
+          </tr>
+        </tbody>
+      </table>
 
-    <h3>Getting started</h3>
-    <p>
-      See <a href="/getting-started">Getting started</a>
-    </p>
+      <h3>Qt6 GUI (for KDE)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Operating System</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Arch Linux</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-qt/releases/download/0.4.2/nbfc-qt-git-0.4.2-1-any.pkg.tar.zst">Download 0.4.2 (124KB)</a></td>
+          </tr>
+          <tr>
+            <td>Debian (Bookworm)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-qt/releases/download/0.4.2/nbfc-qt_0.4.2_amd64.deb">Download 0.4.2 (111KB)</a></td>
+          </tr>
+          <tr>
+            <td>Fedora 42 (Adams)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-qt/releases/download/0.4.2/fedora-nbfc-qt-0.4.2-1.x86_64.rpm">Download 0.4.2 (116KB)</a></td>
+          </tr>
+          <tr>
+            <td>OpenSuse (Tumbleweed)</td>
+            <td><a href="https://github.com/nbfc-linux/nbfc-qt/releases/download/0.4.2/opensuse-nbfc-qt-0.4.2-1.x86_64.rpm">Download 0.4.2 (116KB)</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-  </body>
+    <section id="getting-started-with-the-gui">
+      <h2>Getting Started With The GUI</h2>
+
+      <p>Start the GUI with root privileges:</p>
+      <pre><code>sudo nbfc-qt  # For NBFC-Qt
+# -- or --
+sudo nbfc-gtk # For NBFC-Gtk</code></pre>
+
+      <h3>Step-by-Step Guide</h3>
+      <ol>
+        <li>
+          <strong>Perform update</strong> (tab <em>“Update”</em>)<br />
+          Click the <strong>“Update”</strong> button to fetch the latest configuration files.
+        </li>
+
+        <li>
+          <strong>Select configuration</strong> (tab <em>“Basic Configuration”</em>)<br />
+          <div style="border-left: 4px solid orange; padding-left: 1em; margin: 0.5em 0;">
+            <strong>Warning:</strong> The model name must match completely or use placeholders (like <code>xxx</code>).
+          </div>
+          <ul>
+            <li>Select a configuration from the dropdown menu</li>
+            <li>Click <strong>“Set”</strong></li>
+            <li>Then save using <strong>“Save”</strong></li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Start test mode (read-only)</strong> (tab <em>“Service”</em>)
+          <ul>
+            <li>Enable the checkbox <strong>“Start in read-only mode”</strong></li>
+            <li>Click <strong>“Start”</strong> – status should change to <strong>“Running”</strong></li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Test the configuration</strong><br />
+          Run a stress test in the terminal:
+          <pre><code>stress -c 8</code></pre>
+          <p>
+            Watch the <em>“Fans”</em> tab to see if the displayed fan speed (<strong>“Current Speed”</strong>) changes.  
+            If it doesn't, the configuration is likely invalid!
+          </p>
+        </li>
+
+        <li>
+          <strong>Enable write mode</strong> (tab <em>“Service”</em>)
+          <ul>
+            <li>Stop the service (<strong>“Stop”</strong> button)</li>
+            <li>Uncheck <strong>“Start in read-only mode”</strong></li>
+            <li>Start the service again (<strong>“Start”</strong>)</li>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Use manual or automatic fan control</strong> (tab <em>“Fans”</em>):
+          <ul>
+            <li><strong>Manual:</strong> Set fan speed directly</li>
+            <li><strong>Automatic:</strong> Temperature-based control via profile</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h3>Enable Auto-Start at Boot</h3>
+      <p>To have NBFC-Linux start automatically on system boot:</p>
+      <pre><code>sudo systemctl enable nbfc_service.service</code></pre>
+    </section>
+
+    <section id="getting-started-without-the-gui">
+      <h2>Getting Started Without The GUI</h2>
+
+      <p>When running NBFC for the first time, you need to give it a configuration file for your laptop model.</p>
+
+      <p>Follow the steps below:</p>
+
+      <ol>
+        <li>
+          <code>sudo nbfc update</code> will download the latest configuration files from the internet.
+        </li>
+
+        <li>
+          <code>sudo nbfc config --set auto</code> will try to set a configuration automatically.<br />
+          If this succeeds, skip to <em>Step 5</em>.
+        </li>
+
+        <li>
+          <code>nbfc config --recommend</code> will compare your <code>DMI system-product-name</code> to the available configuration file names and print a list of descending similarity.
+        </li>
+
+        <li>
+          Repeat the following until you find a working configuration:
+          <ul>
+            <li><code>sudo nbfc config --set "&lt;MODEL&gt;"</code> – set a configuration</li>
+            <li><code>sudo nbfc restart -r</code> – (re-)start the service in <em>read only</em> mode</li>
+            <li><code>nbfc status</code> – show the fan status</li>
+            <li>Let the fan turn up (and down) (e.g. using <code>stress</code>) and observe if <code>nbfc status</code> shows fan speed changes</li>
+            <li>If speeds are reported correctly, the config is likely valid. Proceed to <em>Step 5</em>.</li>
+          </ul>
+        </li>
+
+        <li>
+          <code>sudo nbfc restart</code> will (re-)start the service in <em>write mode</em> (enabling fan control)
+        </li>
+
+        <li>
+          Test fan control manually:
+          <ul>
+            <li>
+              <code>nbfc set -s &lt;SPEED&gt;</code> will set the fan speed. (<code>0</code>=off, <code>100</code>=full speed)<br />
+              If this does not work, the specified configuration is invalid. Go back to <em>Step 4</em>.
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <code>nbfc set --auto</code> will enable <em>auto mode</em> (temperature-based automatic fan speed control as specified in configuration)
+        </li>
+
+        <li>
+          <code>sudo systemctl enable nbfc_service</code> will enable the service to start automatically on boot
+        </li>
+      </ol>
+    </section>
+
+    <section id="screenshots">
+      <h2>Screenshots</h2>
+
+      <h3>NBFC-Qt</h3>
+      <div class="gallery">
+        <figure>
+          <a href="img/nbfc-qt/nbfc-qt-service.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-qt/nbfc-qt-service.png" alt="NBFC-Qt Service Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-qt/nbfc-qt-fans.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-qt/nbfc-qt-fans.png" alt="NBFC-Qt Fans Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-qt/nbfc-qt-basic.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-qt/nbfc-qt-basic.png" alt="NBFC-Qt Basic Configuration Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-qt/nbfc-qt-sensors.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-qt/nbfc-qt-sensors.png" alt="NBFC-Qt Sensors Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-qt/nbfc-qt-update.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-qt/nbfc-qt-update.png" alt="NBFC-Qt Update Tab" />
+          </a>
+        </figure>
+      </div>
+
+      <h3>NBFC-GTK</h3>
+      <div class="gallery">
+        <figure>
+          <a href="img/nbfc-gtk/nbfc-gtk-service.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-gtk/nbfc-gtk-service.png" alt="NBFC-GTK Service Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-gtk/nbfc-gtk-fans.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-gtk/nbfc-gtk-fans.png" alt="NBFC-GTK Fans Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-gtk/nbfc-gtk-basic.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-gtk/nbfc-gtk-basic.png" alt="NBFC-GTK Basic Configuration Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-gtk/nbfc-gtk-sensors.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-gtk/nbfc-gtk-sensors.png" alt="NBFC-GTK Sensors Tab" />
+          </a>
+        </figure>
+        <figure>
+          <a href="img/nbfc-gtk/nbfc-gtk-update.png" target="_blank" rel="noopener noreferrer">
+            <img src="img/nbfc-gtk/nbfc-gtk-update.png" alt="NBFC-GTK Update Tab" />
+          </a>
+        </figure>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
 </html>
+
