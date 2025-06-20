@@ -13,9 +13,12 @@
       <a href="#start">Home</a>
       <a href="#downloads">Downloads</a>
       <a href="#guis">Graphical Uses Interfaces</a>
-      <a href="#getting-started-with-the-gui">Getting Started With The GUI</a>
-      <a href="#getting-started-without-the-gui">Getting Started Without The GUI</a>
+      <a href="#getting-started-gui">Getting Started (GUI)</a>
+      <a href="#getting-started-commandline">Getting Started (Command Line)</a>
       <a href="#screenshots">Screenshots</a>
+      <a href="#sponsors">Sponsors</a>
+      <a href="#donate">Donate</a>
+      <a href="https://github.com/nbfc-linux/nbfc-linux" target="_blank" rel="noopener noreferrer">GitHub</a>
     </nav>
   </header>
 
@@ -128,15 +131,16 @@
       </table>
     </section>
 
-    <section id="getting-started-with-the-gui">
-      <h2>Getting Started With The GUI</h2>
+    <section id="getting-started-gui">
+      <h2>Getting Started (GUI)</h2>
+
+      <p>When running NBFC for the first time, you need to give it a configuration file for your laptop model.</p>
 
       <p>Start the GUI with root privileges:</p>
       <pre><code>sudo nbfc-qt  # For NBFC-Qt
 # -- or --
 sudo nbfc-gtk # For NBFC-Gtk</code></pre>
 
-      <h3>Step-by-Step Guide</h3>
       <ol>
         <li>
           <strong>Perform update</strong> (tab <em>“Update”</em>)<br />
@@ -146,7 +150,7 @@ sudo nbfc-gtk # For NBFC-Gtk</code></pre>
         <li>
           <strong>Select configuration</strong> (tab <em>“Basic Configuration”</em>)<br />
           <div style="border-left: 4px solid orange; padding-left: 1em; margin: 0.5em 0;">
-            <strong>Warning:</strong> The model name must match completely or use placeholders (like <code>xxx</code>).
+            <strong>Warning:</strong> The model name must match completely or use placeholders (like <code>XXX</code>).
           </div>
           <ul>
             <li>Select a configuration from the dropdown menu</li>
@@ -196,8 +200,8 @@ sudo nbfc-gtk # For NBFC-Gtk</code></pre>
       <pre><code>sudo systemctl enable nbfc_service.service</code></pre>
     </section>
 
-    <section id="getting-started-without-the-gui">
-      <h2>Getting Started Without The GUI</h2>
+    <section id="getting-started-commandline">
+      <h2>Getting Started (Command Line)</h2>
 
       <p>When running NBFC for the first time, you need to give it a configuration file for your laptop model.</p>
 
@@ -312,6 +316,23 @@ sudo nbfc-gtk # For NBFC-Gtk</code></pre>
           </a>
         </figure>
       </div>
+    </section>
+
+    <section id="sponsors">
+      <h2>Sponsors</h2>
+      <p>No sponsors yet</p>
+    </section>
+
+    <section id="donate" style="text-align: center">
+      <h2 style="font-size: 1.8rem">Support This Project</h2>
+
+      <p style="font-size: 1rem; margin-bottom: 1.5rem;">
+        If you find NBFC-Linux helpful, consider supporting the development by making a small donation. Your support helps keep the project alive and evolving.
+      </p>
+      <a href="https://paypal.me/BenjaminAbendroth" target="_blank" rel="noopener noreferrer"
+         style="display: inline-block; background-color: #0070ba; color: white; padding: 0.75rem 1.5rem; font-size: 1rem; text-decoration: none; border-radius: 8px;">
+        Donate via PayPal
+      </a>
     </section>
 
   </main>

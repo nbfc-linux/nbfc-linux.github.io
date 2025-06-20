@@ -7,13 +7,55 @@ import requests
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+class GitHubAsset:
+    def __init__(self, data):
+        self.name = data['name']
+        self.size = str(int(data['size'] / 1024))
+        self.url  = data['browser_download_url']
+
+class GitHubLatestReleasesQuery:
+    def __init__(self, owner, repo):
+        url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        self.tag = data['tag_name']
+        self.assets = [GitHubAsset(i) for i in data['assets']]
+
+def replace_asset_data(content, owner, repo, placeholder):
+    releases = GitHubLatestReleasesQuery(owner, repo)
+    assets   = {k: None for k in ['DEBIAN', 'FEDORA', 'OPENSUSE', 'ARCHLINUX']}
+
+    for asset in releases.assets:
+        if asset.name.endswith('.deb'):
+            assets['DEBIAN'] = asset
+
+        elif asset.name.startswith('fedora-'):
+            assets['FEDORA'] = asset
+
+        elif asset.name.startswith('opensuse-'):
+            assets['OPENSUSE'] = asset
+
+        elif asset.name.endswith('pkg.tar.zst'):
+            assets['ARCHLINUX'] = asset
+
+    content = content.replace(f'%{placeholder}_TAG%', releases.tag)
+
+    for os, asset in assets.items():
+        content = content.replace(f'%{placeholder}_{os}_PACKAGE%', asset.name)
+        content = content.replace(f'%{placeholder}_{os}_URL%',     asset.url)
+        content = content.replace(f'%{placeholder}_{os}_KB%',      asset.size)
+
+    return content
+
 def make_index_html():
     with open('index.in.html', 'r', encoding='UTF-8') as fh:
         content = fh.read()
 
-    content = replace_nbfc_linux_download_vars(content)
-    content = replace_nbfc_gtk_download_vars(content)
-    content = replace_nbfc_qt_download_vars(content)
+    content = replace_asset_data(content, 'nbfc-linux', 'nbfc-linux', 'NBFC_LINUX')
+    content = replace_asset_data(content, 'nbfc-linux', 'nbfc-gtk',   'NBFC_GTK')
+    content = replace_asset_data(content, 'nbfc-linux', 'nbfc-qt',    'NBFC_QT')
 
     with open('index.html', 'w', encoding='UTF-8') as fh:
         fh.write(content)
@@ -32,153 +74,6 @@ def make_config_data_js():
         fh.write('const configs = ')
         json.dump(config_data, fh, indent=1)
         fh.write(';')
-
-def replace_nbfc_linux_download_vars(content):
-    url = "https://api.github.com/repos/nbfc-linux/nbfc-linux/releases/latest"
-    response = requests.get(url)
-    response.raise_for_status()
-    releases = response.json()
-
-    TAG = releases['tag_name']
-    DEBIAN = None
-    FEDORA = None
-    ARCHLINUX = None
-    OPENSUSE = None
-
-    for release in releases['assets']:
-        name = release['name']
-        size = str(int(release['size'] / 1024))
-        url  = release['browser_download_url']
-
-        if name.endswith('.deb'):
-            DEBIAN = (name, url, size)
-
-        elif name.startswith('fedora-'):
-            FEDORA = (name, url, size)
-
-        elif name.startswith('opensuse-'):
-            OPENSUSE = (name, url, size)
-
-        elif name.endswith('pkg.tar.zst'):
-            ARCHLINUX = (name, url, size)
-
-    content = content.replace('%NBFC_LINUX_TAG%', TAG)
-
-    content = content.replace('%NBFC_LINUX_ARCHLINUX_PACKAGE%', ARCHLINUX[0])
-    content = content.replace('%NBFC_LINUX_ARCHLINUX_URL%',     ARCHLINUX[1])
-    content = content.replace('%NBFC_LINUX_ARCHLINUX_KB%',      ARCHLINUX[2])
-
-    content = content.replace('%NBFC_LINUX_DEBIAN_PACKAGE%',    DEBIAN[0])
-    content = content.replace('%NBFC_LINUX_DEBIAN_URL%',        DEBIAN[1])
-    content = content.replace('%NBFC_LINUX_DEBIAN_KB%',         DEBIAN[2])
-
-    content = content.replace('%NBFC_LINUX_FEDORA_PACKAGE%',    FEDORA[0])
-    content = content.replace('%NBFC_LINUX_FEDORA_URL%',        FEDORA[1])
-    content = content.replace('%NBFC_LINUX_FEDORA_KB%',         FEDORA[2])
-
-    content = content.replace('%NBFC_LINUX_OPENSUSE_PACKAGE%',  OPENSUSE[0])
-    content = content.replace('%NBFC_LINUX_OPENSUSE_URL%',      OPENSUSE[1])
-    content = content.replace('%NBFC_LINUX_OPENSUSE_KB%',       OPENSUSE[2])
-
-    return content
-
-def replace_nbfc_gtk_download_vars(content):
-    url = "https://api.github.com/repos/nbfc-linux/nbfc-gtk/releases/latest"
-    response = requests.get(url)
-    response.raise_for_status()
-    releases = response.json()
-
-    TAG = releases['tag_name']
-    DEBIAN = None
-    FEDORA = None
-    ARCHLINUX = None
-    OPENSUSE = None
-
-    for release in releases['assets']:
-        name = release['name']
-        size = str(int(release['size'] / 1024))
-        url  = release['browser_download_url']
-
-        if name.endswith('.deb'):
-            DEBIAN = (name, url, size)
-
-        elif name.startswith('fedora-'):
-            FEDORA = (name, url, size)
-
-        elif name.startswith('opensuse-'):
-            OPENSUSE = (name, url, size)
-
-        elif name.endswith('pkg.tar.zst'):
-            ARCHLINUX = (name, url, size)
-
-    content = content.replace('%NBFC_GTK_TAG%', TAG)
-
-    content = content.replace('%NBFC_GTK_ARCHLINUX_PACKAGE%', ARCHLINUX[0])
-    content = content.replace('%NBFC_GTK_ARCHLINUX_URL%',     ARCHLINUX[1])
-    content = content.replace('%NBFC_GTK_ARCHLINUX_KB%',      ARCHLINUX[2])
-
-    content = content.replace('%NBFC_GTK_DEBIAN_PACKAGE%',    DEBIAN[0])
-    content = content.replace('%NBFC_GTK_DEBIAN_URL%',        DEBIAN[1])
-    content = content.replace('%NBFC_GTK_DEBIAN_KB%',         DEBIAN[2])
-
-    content = content.replace('%NBFC_GTK_FEDORA_PACKAGE%',    FEDORA[0])
-    content = content.replace('%NBFC_GTK_FEDORA_URL%',        FEDORA[1])
-    content = content.replace('%NBFC_GTK_FEDORA_KB%',         FEDORA[2])
-
-    content = content.replace('%NBFC_GTK_OPENSUSE_PACKAGE%',  OPENSUSE[0])
-    content = content.replace('%NBFC_GTK_OPENSUSE_URL%',      OPENSUSE[1])
-    content = content.replace('%NBFC_GTK_OPENSUSE_KB%',       OPENSUSE[2])
-
-    return content
-
-def replace_nbfc_qt_download_vars(content):
-    url = "https://api.github.com/repos/nbfc-linux/nbfc-qt/releases/latest"
-    response = requests.get(url)
-    response.raise_for_status()
-    releases = response.json()
-
-    TAG = releases['tag_name']
-    DEBIAN = None
-    FEDORA = None
-    ARCHLINUX = None
-    OPENSUSE = None
-
-    for release in releases['assets']:
-        name = release['name']
-        size = str(int(release['size'] / 1024))
-        url  = release['browser_download_url']
-
-        if name.endswith('.deb'):
-            DEBIAN = (name, url, size)
-
-        elif name.startswith('fedora-'):
-            FEDORA = (name, url, size)
-
-        elif name.startswith('opensuse-'):
-            OPENSUSE = (name, url, size)
-
-        elif name.endswith('pkg.tar.zst'):
-            ARCHLINUX = (name, url, size)
-
-    content = content.replace('%NBFC_QT_TAG%', TAG)
-
-    content = content.replace('%NBFC_QT_ARCHLINUX_PACKAGE%', ARCHLINUX[0])
-    content = content.replace('%NBFC_QT_ARCHLINUX_URL%',     ARCHLINUX[1])
-    content = content.replace('%NBFC_QT_ARCHLINUX_KB%',      ARCHLINUX[2])
-
-    content = content.replace('%NBFC_QT_DEBIAN_PACKAGE%',    DEBIAN[0])
-    content = content.replace('%NBFC_QT_DEBIAN_URL%',        DEBIAN[1])
-    content = content.replace('%NBFC_QT_DEBIAN_KB%',         DEBIAN[2])
-
-    content = content.replace('%NBFC_QT_FEDORA_PACKAGE%',    FEDORA[0])
-    content = content.replace('%NBFC_QT_FEDORA_URL%',        FEDORA[1])
-    content = content.replace('%NBFC_QT_FEDORA_KB%',         FEDORA[2])
-
-    content = content.replace('%NBFC_QT_OPENSUSE_PACKAGE%',  OPENSUSE[0])
-    content = content.replace('%NBFC_QT_OPENSUSE_URL%',      OPENSUSE[1])
-    content = content.replace('%NBFC_QT_OPENSUSE_KB%',       OPENSUSE[2])
-
-    return content
 
 make_index_html()
 make_config_data_js()
