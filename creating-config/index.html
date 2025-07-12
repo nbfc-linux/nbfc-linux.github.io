@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Creating Model Configurations</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Creating Model Configurations</h1>
+  </header>
+
+  <main>
+    <section id="start">
+      <p>
+        To create a model configuration file for NBFC-Linux, you will need to analyze
+        the DSDT of your ACPI firmware to discover the registers and methods for controlling the fan.
+
+        <br />
+
+        This guide walks you through:
+      </p>
+
+      <ul>
+        <li><a href="#install">Installing required tools</a></li>
+        <li><a href="#extract">Extracting the firmware</a></li>
+        <li><a href="#analyze">Analyzing the firmware</a></li>
+        <li><a href="#methods-and-registers">Finding methods and registers</a></li>
+        <li><a href="#probing-registers-methods">Probing them on your machine</a></li>
+        <li><a href="#examples">Examples of supported models</a></li>
+      </ul>
+    </section>
+
+    <section id="install">
+      <h2>Install required programs / modules</h2>
+      <p>
+        <br />
+        <b>Install the following programs / modules</b>
+
+        <ul>
+          <li><code>stress</code> -- to stress the systems so fans spin up</li>
+          <li><code>acpica</code> -- for disassembling the DSDT</li>
+          <li><code>acpicall</code> -- for invoking ACPI methods (via <code>ec_probe</code>)</li>
+        </ul>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Operating System</th>
+              <th>Command</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Arch Linux</td>
+              <td><pre>sudo pacman -S acpica acpi_call stress</pre></td>
+            </tr>
+            <tr>
+              <td>Debian (Bookworm)</td>
+              <td><pre>sudo apt install acpica-tools acpi-call stress</pre></td>
+            </tr>
+            <tr>
+              <td>Fedora 42 (Adams)</td>
+              <td><pre>sudo dnf install acpica-tools acpi_call stress</pre></td>
+            </tr>
+            <tr>
+              <td>OpenSuse (Tumbleweed)</td>
+              <td><pre>sudo zypper install acpica acpi_call stress</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </p>
+    </section>
+
+    <section id="extract">
+      <h2>Extracting the Firmware</h2>
+
+      <p>
+        <b>Extract the binary ACPI tables</b> <br />
+
+        <p>This will create the file <code>dsdt.dat</code></p>
+
+        <pre>sudo cat /sys/firmware/acpi/tables/DSDT &gt; dsdt.dat</pre>
+          
+        <b>Generate the DSL file</b> <br />
+
+        <p>This will create the file <code>dsdt.dsl</code>. You can view it with your favourite text editor.</p>
+
+        <pre>iasl -d dsdt.dat</pre>
+      </p>
+    </section>
+
+    <section id="analyze">
+      <h2>Analyzing the firmware</h2>
+
+      <h3>Get a list of ACPI methods</h3>
+
+      <pre>acpiexec -b Methods dsdt.dat</pre>
+
+      <i>Example Output</i>
+
+      <pre>
+      [...]
+         \_SB.PC00.LPCB.EC0._REG Method       0x5e8056d96f60 001 Args 2 Len 002D Aml 0x7564f4170c19
+         \_SB.PC00.LPCB.EC0.CMDW Method       0x5e8056d97050 001 Args 2 Len 004E Aml 0x7564f4170c4e
+         \_SB.PC00.LPCB.EC0.FANG Method       0x5e8056da2610 001 Args 1 Len 0009 Aml 0x7564f4171377
+         \_SB.PC00.LPCB.EC0.FANW Method       0x5e8056da2780 001 Args 2 Len 0008 Aml 0x7564f4171387
+         \_SB.PC00.LPCB.EC0.TUVR Method       0x5e8056da9940 001 Args 1 Len 0003 Aml 0x7564f4171396
+         \_SB.PC00.LPCB.EC0.THRO Method       0x5e8056da9a30 001 Args 1 Len 0005 Aml 0x7564f41713a0
+         \_SB.PC00.LPCB.EC0.CLCK Method       0x5e8056da9b20 001 Args 1 Len 0024 Aml 0x7564f41713ac
+         \_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
+         \_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
+         \_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
+      [...]
+      </pre>
+
+      <h3>Get a list of registers</h3>
+
+      <pre>acpiexec -b 'Objects RegionField' dsdt.dat</pre>
+
+      <i>Example Output</i>
+
+      <pre>
+      [...]
+         \_SB.PC00.LPCB.EC0.ERIB RegionField  0x60093e6470b0 001 Rgn [ECMM] Off 2E8 Len 10 Acc 01
+         \_SB.PC00.LPCB.EC0.SMST RegionField  0x60093e647120 001 Rgn [ECMM] Off 308 Len 08 Acc 01
+         \_SB.PC00.LPCB.EC0.SMAD RegionField  0x60093e647190 001 Rgn [ECMM] Off 310 Len 08 Acc 01
+         \_SB.PC00.LPCB.EC0.SMCM RegionField  0x60093e647200 001 Rgn [ECMM] Off 318 Len 08 Acc 01
+         \_SB.PC00.LPCB.EC0.SMD0 RegionField  0x60093e647270 001 Rgn [ECMM] Off 320 Len 100 Acc 01
+         \_SB.PC00.LPCB.EC0.BCNT RegionField  0x60093e6472e0 001 Rgn [ECMM] Off 420 Len 08 Acc 01
+         \_SB.PC00.LPCB.EC0.SMAA RegionField  0x60093e647350 001 Rgn [ECMM] Off 428 Len 18 Acc 01
+      [...]
+      </pre>
+    </section>
+
+    <section id="methods-and-registers">
+      <h2>Finding Methods And Registers</h2>
+
+      When reading your DSDT, try to identify registers and methods with names like:
+
+      <p>
+        <b>Registers:</b>
+          <code>CFAN</code>,
+          <code>PFAN</code>,
+          <code>FAN1</code>,
+          <code>FSW1</code>
+
+        <br />
+
+        <b>Methods:</b> 
+          <code>FANG</code>,
+          <code>FANW</code>,
+          <code>GFSD</code>,
+          <code>SFSD</code>
+      </p>
+    </section>
+
+    <section id="probing-registers-methods">
+      <h2>Probing Registers And Methods</h2>
+
+      <p>You can access EC registers and invoke ACPI methods using the <code>ec_probe</code> tool:</p>
+
+      <h3>Reading a register</h3>
+
+      <pre>sudo ec_probe read 0xD6</pre>
+
+      <p>For a two-byte register:</p>
+
+      <pre>sudo ec_probe read -w 0xD6</pre>
+
+      <h3>Writing to a register</h3>
+
+      <pre>sudo ec_probe write 0xD7 0x0</pre>
+
+      <p>For a two-byte register:</p>
+
+      <pre>sudo ec_probe write -w 0xD7 0xDEAD</pre>
+
+      <h3>Calling ACPI methods</h3>
+
+      <p>You can also invoke ACPI methods:</p>
+
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.GFSD'</pre>
+
+      <p>With arguments:</p>
+
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFSD' 100</pre>
+    </section>
+
+    <section id="examples">
+      <h2>Examples</h2>
+
+<p>Below are real-world examples, along with a detailed explanation of how the configuration files were created.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Registers</th>
+            <th>Methods</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="HP Laptop 17-bs0xx.html">HP Laptop 17-bs0xx</a></td>
+            <td><b>FAN1</b> (read), <b>FSW1</b> (write), <b>FSH1</b> (misc)</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><a href="HP 620.html">HP 620</a></td>
+            <td><b>CFAN</b> (read), <b>PFAN</b> (write)</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>

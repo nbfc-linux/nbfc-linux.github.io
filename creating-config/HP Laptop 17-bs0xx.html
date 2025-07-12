@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Example: HP Laptop 17-bs0xx</title>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Example: HP Laptop 17-bs0xx</h1>
+    </header>
+
+    <main>
+      <section id="analyze">
+        <h2>Analyzing the DSDT DSL</h2>
+        <p>
+          By looking at the DSL file, we find the registers we are interested in:
+        </p>
+
+        <pre>
+        Field (RAM, ByteAcc, Lock, Preserve)
+        {
+            [...]
+            Offset (0x93), 
+                ,   4, 
+            <b>FSH1,   1,</b>
+            Offset (0x94), 
+            <b>FSW1,   8,</b>
+            <b>FAN1,   8,</b>
+                ,   4, 
+            FSH2,   1, 
+            Offset (0x97), 
+            FSW2,   8, 
+            FAN2,   8
+            [...]
+        }</pre>
+      </section>
+
+
+      <section id="calculate">
+        <h2>Calculating the register addresses</h2>
+
+        <ul>
+          <li><b>FSW1</b> = Offset(0x94) = 0x94 = 148</li>
+          <li><b>FAN1</b> = Offset(0x94) + (8 / 8) = 0x95 = 149</li>
+          <li><b>FSH1</b> = Offset(0x93) = 0x93 = 147</li>
+        </ul>
+      </section>
+
+      <section id="probing">
+        <h2>Finding the WriteRegister</h2>
+
+        <p>We try to set the fan speed using <b>FAN1</b> and <b>FSW1</b>:</p>
+
+        <pre>sudo ec_probe write 148 0</pre>
+        <pre>sudo ec_probe write 148 50</pre>
+        <pre>sudo ec_probe write 148 100</pre>
+
+        <pre>sudo ec_probe write 149 0</pre>
+        <pre>sudo ec_probe write 149 50</pre>
+        <pre>sudo ec_probe write 149 100</pre>
+
+        <p>
+        None of these changed the fan speed, so it's likely that we need to set another register. Luckily, we have <b>FSH1</b> which is one bit long.
+        </p>
+
+        <p>
+        We read the <b>FSH1</b> register:
+        </p>
+
+        <pre>sudo ec_probe read 147</pre>
+
+        <p><i>Output:</i> 4 (0x04)</p>
+
+        <p>This (0x04) is the state where manual fan control is disabled</p>
+
+        <pre>
+        Field (RAM, ByteAcc, Lock, Preserve)
+        {
+            [...]
+            Offset (0x93), 
+                ,   4, 
+            <b>FSH1,   1,</b>
+        }</pre>
+
+        <p>We see that <b>FSH1</b> starts at bit 4, so the desired value to set manual control is: <b>1 &lt;&lt; 4 = 16</b></p>
+
+        <p>We add the original value 4 and 16 and get 20. This is probably our value for enabling manual fan control.</p>
+
+        <pre>sudo ec_probe write 147 20</pre>
+
+        <p>Write to the <b>FSW1</b> register</p>
+        <pre>sudo ec_probe write 148 0</pre>
+        <pre>sudo ec_probe write 148 50</pre>
+        <pre>sudo ec_probe write 148 100</pre>
+        <pre>sudo ec_probe write 148 150</pre>
+        <pre>sudo ec_probe write 148 200</pre>
+        <pre>sudo ec_probe write 148 250</pre>
+
+        <p>
+        The fan speed changed.
+        </p>
+
+        <p>
+        Result: <b>FSW1</b> is our <i>WriteRegister</i>, <b>FAN1</b> is the <i>ReadRegister</i>, <b>FSH1</b> will be use in <i>RegisterWriteConfigurations</i>
+        </p>
+      </section>
+
+      <section id="finding-values">
+        <h2>Finding the MinSpeedValue / MaxSpeedValue</h2>
+
+        <p>
+          How <i>MinSpeedValue</i> and <i>MaxSpeedValue</i> are discovered is not described here.
+        </p>
+
+        <p>
+          See the description for the <i>HP 620</i> configuration file: <a href="HP 620.html#finding-read-values">Finding the ReadRegister values</a> and
+          <a href="HP 620.html#finding-write-values">Finding the WriteRegister values</a>.
+        </p>
+      </section>
+
+      <section id="writing-configuration">
+        <h2>Writing the configuration file</h2>
+
+        <ul>
+          <li><i>149</i> (<b>FAN1</b>) is the <i>ReadRegister</i>.</li>
+          <li><i>148</i> (<b>FSW1</b>) is the <i>WriteRegister</i>.</li>
+          <li><i>147</i> (<b>FSH1</b>) is used inside <i>RegisterWriteConfigurations</i>.</li>
+          <li><i>255</i> is the <i>MinSpeedValue</i>.</li>
+          <li><i>91</i> is the <i>MaxSpeedValue</i>.</li>
+          <li><i>IndependentReadMinMaxValues</i> is <b>false</b>, since <b>FAN1</b> and <b>FSW1</b> share the same range.</li>
+        </ul>
+
+        <p>
+          See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/HP%20Laptop%2017-bs0xx.json">GitHub</a>
+        </p>
+      </section>
+    </main>
+
+  <!--
+    {
+      "FAN1": {"type": "register", "mode": "read" },
+      "FSW1": {"type": "register", "mode": "write" },
+      "FSH1": {"type": "register", "mode": "misc" }
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>

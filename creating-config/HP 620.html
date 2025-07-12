@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: HP 620</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: HP 620</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the DSL file, we find the registers we are interested in:
+      </p>
+
+      <pre>
+        OperationRegion (ECRM, EmbeddedControl, 0x00, 0xFF)
+        Field (ECRM, ByteAcc, NoLock, Preserve)
+        {
+            [...]
+            Offset (0xD1), 
+            BTY,    32, 
+            MFAC,   8, 
+            <b>CFAN,   8,</b>
+            <b>PFAN,   8,</b>
+            [...]
+        }</pre>
+    </section>
+
+    <section id="calculate">
+      <h2>Calculating the register addresses</h2>
+
+      <p>
+        We calculate the register addresses as follows:<br />
+
+        <ul>
+          <li><b>CFAN</b> = Offset(0xD1) + ((32 + 8) / 8) = 0xD6 = 214</li>
+          <li><b>PFAN</b> = Offset(0xD1) + ((32 + 8 + 8) / 8) = 0xD7 = 215</li>
+        </ul>
+      </p>
+    </section>
+
+    <section id="finding-write-register">
+      <h2>Finding the WriteRegister</h2>
+
+      <p>
+      We use the probing tool to find out which register controls the fan:
+      </p>
+
+      <pre>sudo ec_probe write 214 0</pre>
+      <pre>sudo ec_probe write 214 20</pre>
+      <pre>sudo ec_probe write 214 50</pre>
+
+      <p>Nothing has happened here</pre>
+
+      <pre>sudo ec_probe write 215 0</pre>
+      <pre>sudo ec_probe write 215 20</pre>
+      <pre>sudo ec_probe write 215 50</pre>
+
+      <p>The fan changed its speed<p>
+
+      <p>
+      Result: <b>PFAN</b> is the <i>WriteRegister</i>, <b>CFAN</b> is the <i>ReadRegister</i>
+      </p>
+    </section>
+
+    <section id="finding-read-values">
+      <h2>Finding the ReadRegister values</h2>
+
+      <p>
+        We ensure that the fan is turned off (or at least at the minimum speed).
+      </p>
+
+      <pre>sudo ec_probe read 214</pre>
+
+      <p> <i>Output:</i> 20 </p>
+
+      <p>
+        We run <code>stress -c 8</code> to stress the system and spin up the fan.
+      </p>
+
+      <pre>sudo ec_probe read 214</pre>
+
+      <p> <i>Output:</i> 90 </p>
+
+      <p>Result: <i>20</i> is the <b>MinSpeedValue</b> and <i>90</i> is the <b>MaxSpeedValue</b></p>
+    </section>
+
+    <section id="finding-write-values">
+      <h2>Finding the WriteRegister values</h2>
+
+      <p>
+        We use the probing tool to find the values that stop the fan and set the fan to full speed:
+      </p>
+
+      <pre>sudo ec_probe write 215 0</pre>
+      <pre>sudo ec_probe write 215 10</pre>
+      <pre>[...]</pre>
+      <pre>sudo ec_probe write 215 255</pre>
+
+      <p>
+      We see that:
+      <ul>
+        <li><i>0</i> stops the fan</li>
+        <li><i>20</i> starts the fan at minimum speed</li>
+        <li><i>90</i> sets the fan to maximum speed</li>
+      </ul>
+      </p>
+    </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the configuration file</h2>
+
+      <ul>
+        <li> <i>214</i> (<b>CFAN</b>) is the <i>ReadRegister</i>. </li>
+        <li> <i>215</i> (<b>PFAN</b>) is the <i>WriteRegister</i>. </li>
+        <li> <i>20</i> is the <i>MinSpeedValue</i>. </li>
+        <li> <i>90</i> is the <i>MaxSpeedValue</i>. </li>
+        <li> <i>0</i> is a special case. This will be handled by <i>FanSpeedPercentageOverrides</i>. </li>
+        <li> <i>IndependentReadMinMaxValues</i> is <b>false</b>, since <b>CFAN</b> and <b>PFAN</b> share the same range. </li>
+      </ul>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/HP%20620.json">GitHub</a>
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "CFAN": {"type": "register", "mode": "read" },
+      "PFAN": {"type": "register", "mode": "write" }
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
