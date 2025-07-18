@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: HP Pavilion 17 Notebook PC</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: HP Pavilion 17 Notebook PC</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the DSL file, we find the registers we are interested in:
+      </p>
+
+      <pre>
+        OperationRegion (ERAM, EmbeddedControl, Zero, 0xFF)
+        Field (ERAM, ByteAcc, Lock, Preserve)
+        {
+            [...]
+            Offset (0xB2), 
+            <b>RPM1,   8,</b>
+            <b>RPM2,   8,</b>
+            [...]
+            Offset (0xF4), 
+            <b>SFAN,   8,</b>
+            [...]
+        }</pre>
+    </section>
+
+    <section id="calculate">
+      <h2>Calculating the register addresses</h2>
+
+      <p>
+        We calculate the register addresses as follows:<br />
+
+        <ul>
+          <li><b>RPM1</b> = Offset(0xB2) = 0xB2 = 178</li>
+          <li><b>RPM2</b> = Offset(0xB2) + (8 / 8) = 0xB3 = 179</li>
+          <li><b>SFAN</b> = Offset(0xF4) = 0xF4 = 244</li>
+        </ul>
+      </p>
+    </section>
+
+    <section id="finding-write-register">
+      <h2>Finding the WriteRegister</h2>
+
+      <p>
+        We use the probing tool to find out which register controls the fan:
+      </p>
+
+      <pre>sudo ec_probe write 244 0</pre>
+      <pre>sudo ec_probe write 244 1</pre>
+      <pre>sudo ec_probe write 244 20</pre>
+      <pre>sudo ec_probe write 244 50</pre>
+      <pre>sudo ec_probe write 244 100</pre>
+      <pre>sudo ec_probe write 244 255</pre>
+
+      <p>
+      We see that:
+      <ul>
+        <li><i>0</i> doesn't change the fan speed, this is used to reset the fan</li>
+        <li><i>1</i> stops the fan</li>
+        <li><i>50</i> starts spinning the fan at minimum speed</li>
+        <li><i>100</i> sets the fan to maximumg speed</li>
+      </ul>
+      </p>
+
+      <p>
+        Result:
+        <ul>
+          <li><b>SFAN</b> is the <i>WriteRegister</i></li>
+          <li>The value <b>0</b> is used as <i>FanSpeedResetValue</i></li>
+          <li>The value <b>50</b> is used as <i>MinSpeedValue</i></li>
+          <li>The value <b>100</b> is used as <i>MaxSpeedValue</i></li>
+          <li>The value <b>1</b> which stops the fan will be used in <i>FanSpeedPercentageOverrides</i>
+        </ul>
+      </p>
+    </section>
+
+    <section id="finding-read-register">
+      <h2>Finding the ReadRegister</h2>
+
+      <p>
+        We found <b>RPM1</b> and <b>RPM2</b>. One of them might hold the fan speed.
+      </p>
+
+      <p>
+        However, probing the registers with
+        <pre>sudo ec_probe read 178</pre>
+        <pre>sudo ec_probe read 179</pre>
+        while spinning the fan up and down don't yield values that are continuous or meaningful.
+      </p>
+
+      <p>
+        We search for <b>RPM1</b> and <b>RPM2</b> in the <i>dsdt.dsl</i> and find this:
+      </p>
+
+      <pre>
+        Method (FRSP, 0, NotSerialized)
+        {
+            Local2 = Zero
+            If ((\_SB.PCI0.LPCB.EC0.ECOK == One))
+            {
+                Local0 = \_SB.PCI0.LPCB.EC0.RPM1
+                Local1 = \_SB.PCI0.LPCB.EC0.RPM2
+                Local1 &lt;&lt;= 0x08
+                Local0 |= Local1
+                If ((Local0 != Zero))
+                {
+                    Divide (0x00075300, Local0, Local0, Local2)
+                }
+            }
+
+            Return (Local2)
+        }</pre>
+
+      <p>
+        We see that <b>FRSP</b> is the function that combines the two registers into one,
+        applies a division and returns the value.
+      </p>
+
+      <p>Result: <i>\_TZ.TZ01.FRSP</i> is the <b>ReadAcpiMethod</b>.
+    </section>
+
+    <section id="finding-read-values">
+      <h2>Finding the Read values</h2>
+
+      <p>
+        We ensure that the fan is turned off: <pre>sudo ec_probe write 244 1</pre>
+      </p>
+
+      <p>
+        We call the <i>ReadAcpiMethod</i>: <pre>sudo ec_probe acpi_call '\_TZ.TZ01.FRSP'</pre>
+      </p>
+
+      <p>
+        We set the fan to its minimum speed: <pre>sudo ec_probe write 244 50</pre>
+      <p>
+
+      <p>
+        We call the <i>ReadAcpiMethod</i>: <pre>sudo ec_probe acpi_call '\_TZ.TZ01.FRSP'</pre>
+      </p>
+
+      <p>
+        We set the fan to its maximum speed: <pre>sudo ec_probe write 244 1000</pre>
+      <p>
+
+      <p>
+        The output of the <i>ReadAcpiMethod</i>s (in decimal) is: <i>0</i>, <i>~300</i>, <i>~1380</i>.
+      </p>
+
+      <p>
+        Result:
+        <ul>
+          <li><b>300</b> is the <i>MinSpeedValueRead</i></li>
+          <li><b>1380</b> is the <i>MaxSpeedValueRead</i></li>
+          <li><b>0</b> is a special value for fan speed 0 and will be used in <i>FanSpeedPercentageOverrides</i>
+        </ul>
+      </p>
+    </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the configuration file</h2>
+
+      <p>
+        For writing the fan value we have:
+
+        <ul>
+          <li><i>244</i> (<b>SFAN</b>) is the <i>WriteRegister</i></li>
+          <li><i>50</i> is the <i>MinSpeedValue</i></li>
+          <li><i>100</i> is the <i>MaxSpeedValue</i></li>
+          <li><i>0</i> is the <i>FanSpeedResetValue</i></li>
+          <li><i>1</i> is a special case. This will be handled by <i>FanSpeedPercentageOverrides</i></li>
+        </ul>
+
+        For reading the fan value we have:
+
+        <ul>
+          <li><i>\_TZ.TZ01.FRSP</i> is the <i>ReadAcpiMethod</i></li>
+          <li><i>300</i> is the <i>MinSpeedValueRead</i></li>
+          <li><i>1380</i> is the <i>MaxSpeedValueRead</i></li>
+          <li><i>0</i> is a special case. This will be handled by <i>FanSpeedPercentageOverrides</i></li>
+        </ul>
+
+        Also:
+
+        <ul>
+          <li><i>IndependentReadMinMaxValues</i> is <b>true</b>, since <b>MinSpeedValue/MaxSpeedValue</b> and <b>MinSpeedValueRead/MaxSpeedValueRead</b> are different</li>
+        </ul>
+      </p>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/HP%20Pavilion%2017%20Notebook%20PC.json">GitHub</a>
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "SFAN":            {"type": "register", "mode": "write" },
+      "\\_TZ.TZ01.FRSP": {"type": "method",   "mode": "read" }
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
+

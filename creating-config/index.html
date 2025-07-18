@@ -85,7 +85,7 @@
           
         <b>Generate the DSL file</b> <br />
 
-        <p>This will create the file <code>dsdt.dsl</code>. You can view it with your favourite text editor.</p>
+        <p>This will create the file <code>dsdt.dsl</code>. You can view it with your favorite text editor.</p>
 
         <pre>iasl -d dsdt.dat</pre>
       </p>
@@ -112,8 +112,7 @@
          \_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
          \_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
          \_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
-      [...]
-      </pre>
+      [...]</pre>
 
       <h3>Get a list of registers</h3>
 
@@ -130,21 +129,41 @@
          \_SB.PC00.LPCB.EC0.SMD0 RegionField  0x60093e647270 001 Rgn [ECMM] Off 320 Len 100 Acc 01
          \_SB.PC00.LPCB.EC0.BCNT RegionField  0x60093e6472e0 001 Rgn [ECMM] Off 420 Len 08 Acc 01
          \_SB.PC00.LPCB.EC0.SMAA RegionField  0x60093e647350 001 Rgn [ECMM] Off 428 Len 18 Acc 01
-      [...]
-      </pre>
+      [...]</pre>
+
+      <p>
+        The offset (<code>Off</code>) is specified in bits (hexadecimal).
+
+        To convert the bit offset into a byte offset and bit position, we open <code>python</code> or <code>ipython</code> and divide the offset by 8, then take the modulo 8:
+
+        <pre>
+        ~ &gt; python
+        Python 3.13.5 (main, Jun 21 2025, 09:35:00) [GCC 15.1.1 20250425] on linux
+        Type "help", "copyright", "credits" or "license" for more information.
+        &gt;&gt;&gt; 0x2E8 // 8
+        93
+        &gt;&gt;&gt; 0x2E8 % 8
+        0
+        </pre>
+
+        This yields register number <i>93</i> and a bit offset of <i>0</i>.
+      </p>
     </section>
 
     <section id="methods-and-registers">
-      <h2>Finding Methods And Registers</h2>
+      <h2>Finding Methods and Registers</h2>
 
       When reading your DSDT, try to identify registers and methods with names like:
 
       <p>
         <b>Registers:</b>
+          <code>SFAN</code>,
           <code>CFAN</code>,
           <code>PFAN</code>,
           <code>FAN1</code>,
-          <code>FSW1</code>
+          <code>FSW1</code>,
+          <code>RPM1</code>,
+          <code>RPM2</code>
 
         <br />
 
@@ -152,12 +171,13 @@
           <code>FANG</code>,
           <code>FANW</code>,
           <code>GFSD</code>,
-          <code>SFSD</code>
+          <code>SFSD</code>,
+          <code>FRSP</code>
       </p>
     </section>
 
     <section id="probing-registers-methods">
-      <h2>Probing Registers And Methods</h2>
+      <h2>Probing Registers and Methods</h2>
 
       <p>You can access EC registers and invoke ACPI methods using the <code>ec_probe</code> tool:</p>
 
@@ -202,6 +222,11 @@
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="HP Pavilion 17 Notebook PC.html">HP Pavilion 17 Notebook PC</a></td>
+            <td><b>SFAN</b> (write)</td>
+            <td><b>\_TZ.TZ01.FRSP</b> (read)</td>
+          </tr>
           <tr>
             <td><a href="HP Laptop 17-bs0xx.html">HP Laptop 17-bs0xx</a></td>
             <td><b>FAN1</b> (read), <b>FSW1</b> (write), <b>FSH1</b> (misc)</td>
