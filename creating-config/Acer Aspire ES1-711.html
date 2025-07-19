@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: Acer Aspire ES1-711</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: Acer Aspire ES1-711</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the
+        <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/Acer%20Aspire%20ES1-711.dsl">DSL file</a>,
+        we find the registers we are interested in:
+      </p>
+
+      <pre>
+        Scope (_TZ)
+        {
+            ThermalZone (TZ01)
+            {
+                Method (_TMP, 0, NotSerialized)  // _TMP: Temperature
+                {
+                    If (\_SB.ECOK)
+                    {
+                        Local0 = \_SB.PCI0.LPCB.EC0.CTMP
+                        Return (((Local0 * 0x0A) + 0x0AAC))
+                    }
+                    Else
+                    {
+                        Return (0x0CD2)
+                    }
+                }
+
+                [...]
+            }
+        }
+
+        OperationRegion (EMEM, SystemMemory, 0xFEDF8200, 0x0100)
+        Field (EMEM, ByteAcc, NoLock, Preserve)
+        {
+            [...]
+            Offset (0x58), 
+            CTMP,   8, 
+            Offset (0x5A), 
+            [...]
+        }</pre>
+
+        <p>
+          The <b>CTMP</b> register is used in the calculation of the temperature reported by <i>ThermalZone TZ01</i>.
+        </p>
+    </section>
+
+    <section id="calculate">
+      <h2>Calculating Register Addresses</h2>
+
+      <p>
+        We calculate the register addresses as follows:
+      </p>
+
+      <ul>
+        <li><b>CTMP</b> = Offset(0x58) = 0x58 = 88</li>
+      </ul>
+    </section>
+
+    <section id="finding-write-register">
+      <h2>Finding the WriteRegister</h2>
+
+      <p>
+        While <b>CTMP</b> is not a direct fan control register, manipulating its
+        value allows us to simulate different CPU temperatures and indirectly trigger fan speed changes.
+      </p>
+
+      <pre>sudo ec_probe write 88 0</pre>
+      <pre>sudo ec_probe write 88 100</pre>
+
+      <p>The fan speed changed.</p>
+
+      <p>
+        Now we can run:
+      </p>
+
+      <pre>sudo ec_probe write 88 0</pre>
+
+      <p>Wait until the fan turns down ...</p>
+
+      <pre>sudo ec_probe monitor -c -r readings.csv</pre>
+
+      <p>
+        While running the monitor command, we spin the fan up:
+      </p>
+
+      <pre>sudo ec_probe write 88 100</pre>
+
+      <p>Wait until the fan turns up ...</p>
+
+      <p>
+        We kill the monitor command by typing CTRL+C
+      </p>
+
+      <p>
+        The <code>readings.csv</code> looks like this:
+      </p>
+
+      <pre>
+02,18,14,18,12,13,17,14,11,15,16,15,12,14,12,14,16,12,14,18,16,1B,12,14,13,19,13,12,13,15,18,13,1A,13,11,14,17,11,17,15,11,15,13,16,13,14,18,11,12,14,11,18,19,14,19,11,19,11,15,12,17,15,17
+<b>55,00,01,02,03,04,05,06,07</b>
+56,00,49,45,4B,47,4D,49,4F,55,5B,61,67,6D,73,79,7F,84,8A,91,97,9D,A0,A2,A4
+58,25,64
+5C,00,A3,2E,EA,DE,8D,21,B2,99,26,3A,A1,AA,2B,1E,F1,2D,CD,DE,6B,4C,5C,6B,DE,EF,6B,EF,DE,6B,5C,EF,7B,6B,DE,EF,6B,00,EF
+5D,00,02,06,07,08,09,0A,0B,0C,0D,0E,0F,0E,0F,10,0F
+82,C8,C9,C8,C9,C8,C9,C8,C9,C8
+98,6D,6E,6D,6E,6D,6E,6D
+      </pre>
+
+      <p>
+        We see that register <i>0x55</i> gives continuous values from <i>0x00</i> to <i>0x07</i>.
+      </p>
+
+      <p>
+        We try to set the fan speed by writing to <i>0x55</i>
+      </p>
+
+      <pre>sudo ec_probe write 0x55 0</pre>
+      <pre>sudo ec_probe write 0x55 4</pre>
+      <pre>sudo ec_probe write 0x55 7</pre>
+
+      <p>
+        The fan speed changed!
+      </p>
+
+      <p>
+        Result:
+      </p>
+
+      <ul>
+        <li><b>0x55</b> is the <i>ReadRegister</i></li>
+        <li><b>0x55</b> is the <i>WriteRegister</i></li>
+        <li><b>0</b> is the <i>MinSpeedValue</i></li>
+        <li><b>7</b> is the <i>MaxSpeedValue</i></li>
+      </ul>
+    </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the Configuration File</h2>
+
+      <ul>
+        <li><i>85</i> is the <i>ReadRegister</i></li>
+        <li><i>85</i> is the <i>WriteRegister</i></li>
+        <li><i>0</i> is the <i>MinSpeedValue</i></li>
+        <li><i>7</i> is the <i>MaxSpeedValue</i></li>
+      </ul>
+
+      <p>
+        Since the fan speed gets periodically reset, we don't have a <i>FanSpeedResetValue</i>.
+      </p>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/Acer%20Aspire%20ES1-711.json">GitHub</a>
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "0x55": {"type": "register", "mode": "read+write" }
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
