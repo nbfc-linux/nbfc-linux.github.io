@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: ASUSTeK COMPUTER INC. X5511CA</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: ASUSTeK COMPUTER INC. X5511CA</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the DSL file, we find the methods we are interested in:
+      </p>
+
+      <pre>
+        Method (<b>SFNV</b>, 2, Serialized)
+        {
+            If ((Arg0 == Zero))
+            {
+                If ((DECF &amp; One))
+                {
+                    Local0 = RRAM (0x0521)
+                    Local0 |= 0x80
+                    WRAM (0x0521, Local0)
+                }
+
+                If ((DECF &amp; 0x02))
+                {
+                    Local0 = RRAM (0x0522)
+                    Local0 |= 0x80
+                    WRAM (0x0522, Local0)
+                }
+
+                DECF = Zero
+                Return (Zero)
+            }
+
+            If ((Arg0 == One))
+            {
+                Local0 = RRAM (0x0521)
+                Local0 &amp;= 0x7F
+                WRAM (0x0521, Local0)
+                DECF |= One
+                ST84 (Zero, Arg1)
+                Return (Zero)
+            }
+
+            If ((Arg0 == 0x02))
+            {
+                Local0 = RRAM (0x0522)
+                Local0 &amp;= 0x7F
+                WRAM (0x0522, Local0)
+                DECF |= 0x02
+                ST84 (One, Arg1)
+                Return (Zero)
+            }
+
+            Return (Zero)
+        }
+
+        [...]
+
+        Method (<b>RRAM</b>, 1, Serialized)
+        {
+            If (ECAV ())
+            {
+                Acquire (MU4T, 0xFFFF)
+                If ((WEOE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                If ((WEIE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                EC4C = 0xFF
+                If ((WEIE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                Local0 = Arg0
+                Local1 = (Local0 &amp; 0xFF)
+                Local0 &gt;&gt;= 0x08
+                Local0 &amp;= 0xFF
+                EC4C = 0x80
+                If ((WEIE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                EC4D = Local0
+                If ((WEIE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                EC4D = Local1
+                If ((WEIE () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                If ((WEOF () != Zero))
+                {
+                    Release (MU4T)
+                    Return (Ones)
+                }
+
+                Local0 = EC4D /* \_SB_.PCI0.LPCB.EC0_.EC4D */
+                Release (MU4T)
+                Return (Local0)
+            }
+
+            Return (Ones)
+        }</pre>
+
+      <p>
+        <ul>
+          <li><b>SFNV</b> ("<i>Set Fan Voltage</i>") is used to set the fan speed</li>
+          <li><b>RRAM</b> ("<i>Read RAM</i>") is used to read from the EC RAM</li>
+        </ul>
+      </p>
+    </section>
+
+    <section id="finding-the-write-arguments">
+      <h2>Finding the Arguments for the Write Method</h2>
+
+      <p>
+        Let's have a look at the <b>SFNV</b> method from above:
+
+        <ul>
+          <li>It takes <i>two</i> arguments</li>
+          <li>The first argument is tested against the values <i>0x0</i>, <i>0x1</i> and <i>0x2</i></li>
+          <li>The second argument is only used if the first argument is <i>0x1</i> or <i>0x2</i></li>
+        </ul>
+      </p>
+
+      <p>
+        Let's try calling the <b>SFNV</b> method:
+
+        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
+        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
+        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 0 0</pre>
+
+        The first command stops the fan, the second sets the fan to full speed, and the third resets the fan.
+      </p>
+
+      <p>
+        Result:
+        <ul>
+          <li><b>\_SB.PCI0.LPCB.EC0.SFNV 0 0</b> is used as <b>ResetAcpiMethod</b></li>
+          <li><b>\_SB.PCI0.LPCB.EC0.SFNV 1 $</b> is used as <b>WriteAcpiMethod</b></li>
+        </ul>
+      </p>
+    </section>
+
+    <section id="finding-the-read-register">
+      <h2>Finding the Read Register</h2>
+
+      <p>
+        We couldn't find any register or method that reports the fan speed.<br/ >
+        <br />
+        However, it must be set somewhere in the EC RAM.<br/ >
+        <br />
+        Luckily, we have the <b>RRAM</b> method to read values out of the EC RAM. <br />
+        <br />
+        Let's make a dump of all EC RAM registers when the fan is stopped:
+        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
+        <pre>
+for i in $(seq 0 65535); do
+    printf "$i: "; sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.RRAM' $i
+done &gt; dump_low</pre>
+
+        Then we turn the fan up and create another dump:
+        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
+        <pre>
+for i in $(seq 0 65535); do
+    printf "$i: "; sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.RRAM' $i
+done &gt; dump_high</pre>
+
+        Now we can compare the two dumps to identify changes, e.g. by using <code>diff dump_low dump_high</code>:
+        <br />
+
+        We see that register <i>6151</i> contains <i>0</i> in <i>dump_low</i> and <i>255</i> in <i>dump_high</i>.
+      </p>
+
+      <p>
+        Result:
+        <ul>
+          <li><b>\_SB.PCI0.LPCB.EC0.RRAM 6151</b> is used as <b>ReadAcpiMethod</b></li>
+        </ul>
+      </p>
+    </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the configuration file</h2>
+
+      <ul>
+        <li><i>\_SB.PCI0.LPCB.EC0.RRAM 6151</i> is used as <i>ReadAcpiMethod</i></li>
+        <li><i>\_SB.PCI0.LPCB.EC0.SFNV 1 $</i> is used as <i>WriteAcpiMethod</i></li>
+        <li><i>\_SB.PCI0.LPCB.EC0.SFNV 0 0</i> is used as <i>ResetAcpiMethod</i></li>
+        <li><i>0</i> is the <i>MinSpeedValue</i></li>
+        <li><i>255</i> is the <i>MaxSpeedValue</i></li>
+        <li><i>IndependentReadMinMaxValues</i> is <b>false</b>, since the values of both methods (<i>ReadAcpiMethod</i> and <i>WriteAcpiMethod</i>) share the same range</li>
+      </ul>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/ASUSTeK%20COMPUTER%20INC.%20X551CA.json">GitHub</a>
+      </p>
+    </section>
+
+    <section id="note">
+      <h2>Note</h2>
+
+      <p>
+        Maybe there is another way to control the fan by using the <b>QMOD</b> method
+        and the <b>TAH0</b>, <b>TAH1</b>, <b>TH1R</b>, <b>TH1L</b>, <b>TH0R</b> and <b>TH0L</b> registers. <br />
+        <br />
+        However, I was not able to figure it out.
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "\\_SB.PCI0.LPCB.EC0.RRAM": {"type": "method", "mode": "read"},
+      "\\_SB.PCI0.LPCB.EC0.SFNV": {"type": "method", "mode": "write"}
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
+
