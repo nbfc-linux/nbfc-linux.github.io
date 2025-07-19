@@ -16,7 +16,9 @@
       <h2>Analyzing the DSDT DSL</h2>
 
       <p>
-        By looking at the DSL file, we find the methods we are interested in:
+        By looking at the
+        <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/ASUSTeK%20COMPUTER%20INC.%20X551CA.dsl">DSL file</a>,
+        we find the methods we are interested in:
       </p>
 
       <pre>
@@ -130,12 +132,10 @@
             Return (Ones)
         }</pre>
 
-      <p>
-        <ul>
-          <li><b>SFNV</b> ("<i>Set Fan Voltage</i>") is used to set the fan speed</li>
-          <li><b>RRAM</b> ("<i>Read RAM</i>") is used to read from the EC RAM</li>
-        </ul>
-      </p>
+      <ul>
+        <li><b>SFNV</b> ("<i>Set Fan Voltage</i>") is used to set the fan speed</li>
+        <li><b>RRAM</b> ("<i>Read RAM</i>") is used to read from the EC RAM</li>
+      </ul>
     </section>
 
     <section id="finding-the-write-arguments">
@@ -143,73 +143,86 @@
 
       <p>
         Let's have a look at the <b>SFNV</b> method from above:
-
-        <ul>
-          <li>It takes <i>two</i> arguments</li>
-          <li>The first argument is tested against the values <i>0x0</i>, <i>0x1</i> and <i>0x2</i></li>
-          <li>The second argument is only used if the first argument is <i>0x1</i> or <i>0x2</i></li>
-        </ul>
       </p>
+
+      <ul>
+        <li>It takes <i>two</i> arguments</li>
+        <li>The first argument is tested against the values <i>0x0</i>, <i>0x1</i> and <i>0x2</i></li>
+        <li>The second argument is only used if the first argument is <i>0x1</i> or <i>0x2</i></li>
+      </ul>
 
       <p>
         Let's try calling the <b>SFNV</b> method:
+      </p>
 
-        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
-        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
-        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 0 0</pre>
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 0 0</pre>
 
+      <p>
         The first command stops the fan, the second sets the fan to full speed, and the third resets the fan.
       </p>
 
       <p>
         Result:
-        <ul>
-          <li><b>\_SB.PCI0.LPCB.EC0.SFNV 0 0</b> is used as <b>ResetAcpiMethod</b></li>
-          <li><b>\_SB.PCI0.LPCB.EC0.SFNV 1 $</b> is used as <b>WriteAcpiMethod</b></li>
-        </ul>
       </p>
+
+      <ul>
+        <li><b>\_SB.PCI0.LPCB.EC0.SFNV 0 0</b> is used as <b>ResetAcpiMethod</b></li>
+        <li><b>\_SB.PCI0.LPCB.EC0.SFNV 1 $</b> is used as <b>WriteAcpiMethod</b></li>
+      </ul>
     </section>
 
     <section id="finding-the-read-register">
       <h2>Finding the Read Register</h2>
 
       <p>
-        We couldn't find any register or method that reports the fan speed.<br/ >
+        We couldn't find any register or method that reports the fan speed.<br />
         <br />
-        However, it must be set somewhere in the EC RAM.<br/ >
+        However, it must be set somewhere in the EC RAM.<br />
         <br />
-        Luckily, we have the <b>RRAM</b> method to read values out of the EC RAM. <br />
+        Luckily, we have the <b>RRAM</b> method to read values out of the EC RAM.<br />
         <br />
         Let's make a dump of all EC RAM registers when the fan is stopped:
-        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
-        <pre>
+      </p>
+
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 0</pre>
+      <pre>
 for i in $(seq 0 65535); do
     printf "$i: "; sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.RRAM' $i
 done &gt; dump_low</pre>
 
+      <p>
         Then we turn the fan up and create another dump:
-        <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
-        <pre>
+      </p>
+
+      <pre>sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.SFNV' 1 255</pre>
+      <pre>
 for i in $(seq 0 65535); do
     printf "$i: "; sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.RRAM' $i
 done &gt; dump_high</pre>
 
-        Now we can compare the two dumps to identify changes, e.g. by using <code>diff dump_low dump_high</code>:
-        <br />
+      <p>
+        Now we can compare the two dumps to identify changes, e.g. by using:
+      </p>
 
+      <pre>diff dump_low dump_high</pre>
+
+      <p>
         We see that register <i>6151</i> contains <i>0</i> in <i>dump_low</i> and <i>255</i> in <i>dump_high</i>.
       </p>
 
       <p>
         Result:
-        <ul>
-          <li><b>\_SB.PCI0.LPCB.EC0.RRAM 6151</b> is used as <b>ReadAcpiMethod</b></li>
-        </ul>
       </p>
+
+      <ul>
+        <li><b>\_SB.PCI0.LPCB.EC0.RRAM 6151</b> is used as <b>ReadAcpiMethod</b></li>
+      </ul>
     </section>
 
     <section id="writing-configuration">
-      <h2>Writing the configuration file</h2>
+      <h2>Writing the Configuration File</h2>
 
       <ul>
         <li><i>\_SB.PCI0.LPCB.EC0.RRAM 6151</i> is used as <i>ReadAcpiMethod</i></li>
@@ -230,7 +243,7 @@ done &gt; dump_high</pre>
 
       <p>
         Maybe there is another way to control the fan by using the <b>QMOD</b> method
-        and the <b>TAH0</b>, <b>TAH1</b>, <b>TH1R</b>, <b>TH1L</b>, <b>TH0R</b> and <b>TH0L</b> registers. <br />
+        and the <b>TAH0</b>, <b>TAH1</b>, <b>TH1R</b>, <b>TH1L</b>, <b>TH0R</b> and <b>TH0L</b> registers.<br />
         <br />
         However, I was not able to figure it out.
       </p>

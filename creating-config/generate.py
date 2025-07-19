@@ -47,9 +47,11 @@ for basename, metadata in METADATA.items():
         if data['type'] == 'method':
             methods.append(f'<b>{item}</b> ({data["mode"]})')
 
+    url = '%s.html' % basename.replace(' ', '%20')
+
     table_row = f'''\
           <tr>
-            <td><a href="{basename}.html">{basename}</a></td>
+            <td><a href="{url}">{basename}</a></td>
             <td>{', '.join(registers)}</td>
             <td>{', '.join(methods)}</td>
           </tr>'''

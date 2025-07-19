@@ -15,10 +15,14 @@
       <section id="analyze">
         <h2>Analyzing the DSDT DSL</h2>
         <p>
-          By looking at the DSL file, we find the registers we are interested in:
+          By looking at the
+          <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/HP%20Laptop%2017-bs0xx.dsl">DSL file</a>,
+          we find the registers we are interested in:
         </p>
 
         <pre>
+        OperationRegion (RAM, EmbeddedControl, Zero, 0xFF)
+        [...]
         Field (RAM, ByteAcc, Lock, Preserve)
         {
             [...]
@@ -37,9 +41,12 @@
         }</pre>
       </section>
 
-
       <section id="calculate">
-        <h2>Calculating the register addresses</h2>
+        <h2>Calculating Register Addresses</h2>
+
+        <p>
+          We calculate the register addresses as follows:
+        </p>
 
         <ul>
           <li><b>FSW1</b> = Offset(0x94) = 0x94 = 148</li>
@@ -99,12 +106,18 @@
         <pre>sudo ec_probe write 148 250</pre>
 
         <p>
-        The fan speed changed.
+          The fan speed changed.
         </p>
 
         <p>
-        Result: <b>FSW1</b> is our <i>WriteRegister</i>, <b>FAN1</b> is the <i>ReadRegister</i>, <b>FSH1</b> will be use in <i>RegisterWriteConfigurations</i>
+          Result:
         </p>
+
+        <ul>
+          <li><b>FSW1</b> is the <i>WriteRegister</i></li>
+          <li><b>FAN1</b> is the <i>ReadRegister</i></li>
+          <li><b>FSH1</b> will be use in <i>RegisterWriteConfigurations</i></li>
+        </ul>
       </section>
 
       <section id="finding-values">
@@ -115,13 +128,13 @@
         </p>
 
         <p>
-          See the description for the <i>HP 620</i> configuration file: <a href="HP 620.html#finding-read-values">Finding the ReadRegister values</a> and
-          <a href="HP 620.html#finding-write-values">Finding the WriteRegister values</a>.
+          See the description for the <i>HP 620</i> configuration file: <a href="HP%20620.html#finding-read-values">Finding the ReadRegister values</a> and
+          <a href="HP%20620.html#finding-write-values">Finding the WriteRegister values</a>.
         </p>
       </section>
 
       <section id="writing-configuration">
-        <h2>Writing the configuration file</h2>
+        <h2>Writing the Configuration File</h2>
 
         <ul>
           <li><i>149</i> (<b>FAN1</b>) is the <i>ReadRegister</i>.</li>

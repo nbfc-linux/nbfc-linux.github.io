@@ -16,7 +16,9 @@
       <h2>Analyzing the DSDT DSL</h2>
 
       <p>
-        By looking at the DSL file, we find the registers we are interested in:
+        By looking at the
+        <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/HP%20620.dsl">DSL file</a>,
+        we find the registers we are interested in:
       </p>
 
       <pre>
@@ -34,44 +36,49 @@
     </section>
 
     <section id="calculate">
-      <h2>Calculating the register addresses</h2>
+      <h2>Calculating Register Addresses</h2>
 
       <p>
-        We calculate the register addresses as follows:<br />
-
-        <ul>
-          <li><b>CFAN</b> = Offset(0xD1) + ((32 + 8) / 8) = 0xD6 = 214</li>
-          <li><b>PFAN</b> = Offset(0xD1) + ((32 + 8 + 8) / 8) = 0xD7 = 215</li>
-        </ul>
+        We calculate the register addresses as follows:
       </p>
+
+      <ul>
+        <li><b>CFAN</b> = Offset(0xD1) + ((32 + 8) / 8) = 0xD6 = 214</li>
+        <li><b>PFAN</b> = Offset(0xD1) + ((32 + 8 + 8) / 8) = 0xD7 = 215</li>
+      </ul>
     </section>
 
     <section id="finding-write-register">
       <h2>Finding the WriteRegister</h2>
 
       <p>
-      We use the probing tool to find out which register controls the fan:
+        We use the probing tool to find out which register controls the fan:
       </p>
 
       <pre>sudo ec_probe write 214 0</pre>
       <pre>sudo ec_probe write 214 20</pre>
       <pre>sudo ec_probe write 214 50</pre>
 
-      <p>Nothing has happened here</pre>
+      <p>The fan speed did not change</p>
 
       <pre>sudo ec_probe write 215 0</pre>
       <pre>sudo ec_probe write 215 20</pre>
       <pre>sudo ec_probe write 215 50</pre>
 
-      <p>The fan changed its speed<p>
+      <p>The fan speed changed</p>
 
       <p>
-      Result: <b>PFAN</b> is the <i>WriteRegister</i>, <b>CFAN</b> is the <i>ReadRegister</i>
+        Result:
       </p>
+
+      <ul>
+        <li><b>PFAN</b> is the <i>WriteRegister</i></li>
+        <li><b>CFAN</b> is the <i>ReadRegister</i></li>
+      </ul>
     </section>
 
     <section id="finding-read-values">
-      <h2>Finding the ReadRegister values</h2>
+      <h2>Finding the ReadRegister Values</h2>
 
       <p>
         We ensure that the fan is turned off (or at least at the minimum speed).
@@ -93,7 +100,7 @@
     </section>
 
     <section id="finding-write-values">
-      <h2>Finding the WriteRegister values</h2>
+      <h2>Finding the WriteRegister Values</h2>
 
       <p>
         We use the probing tool to find the values that stop the fan and set the fan to full speed:
@@ -105,17 +112,18 @@
       <pre>sudo ec_probe write 215 255</pre>
 
       <p>
-      We see that:
+        We see that:
+      </p>
+
       <ul>
         <li><i>0</i> stops the fan</li>
         <li><i>20</i> starts the fan at minimum speed</li>
         <li><i>90</i> sets the fan to maximum speed</li>
       </ul>
-      </p>
     </section>
 
     <section id="writing-configuration">
-      <h2>Writing the configuration file</h2>
+      <h2>Writing the Configuration File</h2>
 
       <ul>
         <li><i>214</i> (<b>CFAN</b>) is the <i>ReadRegister</i></li>
