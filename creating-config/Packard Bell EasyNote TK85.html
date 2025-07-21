@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: Packard Bell EasyNote TK85</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: Packard Bell EasyNote TK85</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the
+        <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/Packard%20Bell%20EasyNote%20TK85.dsl">DSL file</a>,
+        we find the methods we are interested in:
+      </p>
+
+      <pre>
+        Mutex (FAMX, 0x00)
+        Method (<b>FANG</b>, 1, NotSerialized)
+        {
+            Acquire (FAMX, 0xFFFF)
+            ERIB = Arg0
+            Local0 = ERBD /* \_SB_.PCI0.LPCB.EC0_.ERBD */
+            Release (FAMX)
+            Return (Local0)
+        }
+
+        Method (<b>FANW</b>, 2, NotSerialized)
+        {
+            Acquire (FAMX, 0xFFFF)
+            ERIB = Arg0
+            ERBD = Arg1
+            Release (FAMX)
+            Return (Arg1)
+        }</pre>
+    </section>
+
+    <section id="finding-the-write-arguments">
+      <h2>Finding the Arguments for the Read/Write Method</h2>
+
+      <p>
+        We have the methods <b>FANG</b> and <b>FANW</b>.
+        The first method  takes one argument, while the second takes two.
+        We need to figure out which value we have to pass for reading or writing the fan speed.
+      </p>
+
+      <p>
+        We make sure that the fan is stopped or at least at minimum speed.
+      </p>
+
+      <p>
+        We make a dump of all possible arguments to the <b>FANG</b> method:
+      </p>
+
+      <pre>
+for i in $(seq 0 65565); do
+  printf "$i: "
+  sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANG' $i
+done &gt; dump_lowfan</pre>
+
+      <p>
+        We make sure that the fan is at the highest speed by using <code>stress</code>
+      </p>
+
+      <pre>stress -c 8</pre>
+
+      <p>
+        Wait until the fan spins up ...
+      </p>
+
+      <p>
+        We make a dump again:
+      </p>
+
+      <pre>
+for i in $(seq 0 65565); do
+  printf "$i: "
+  sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANG' $i
+done &gt; dump_highfan</pre>
+
+      <p>
+        Both files should look like this:
+      </p>
+
+      <pre>
+0: 0xf0
+1: 0xf0
+2: 0xf0
+3: 0xf0
+4: 0xf0
+5: 0xf0
+6: 0xf0
+7: 0xf0
+8: 0xf0
+[...]</pre>
+
+      <p>
+        We extract a list of arguments that changed in the two dumps:
+      </p>
+
+      <pre>diff dump_lowfan dump_highfan | grep -Eo '[0-9]+:' | tr -d ':' | sort -un &gt; dump_diff</pre>
+
+      <p>
+        We call the <b>FANW</b> method for each value in the diff:
+      </p>
+
+      <pre>
+for i in $(cat dump_diff); do
+  echo "Value $i (press enter)"
+  read
+  sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANW' $i 0xFF
+done &gt; dump_highfan</pre>
+
+      <p>
+        We observe that the value <i>33026</i> changes the fan speed.
+      </p>
+
+      <p>
+        Result:
+      </p>
+
+      <ul>
+        <li><b>\_SB.PCI0.LPCB.EC0.FANG 33026</b> is the <i>ReadAcpiMethod</i></li>
+        <li><b>\_SB.PCI0.LPCB.EC0.FANW 33026 $</b> is the <i>WriteAcpiMethod</i></li>
+      </ul>
+    </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the Configuration File</h2>
+
+      <ul>
+        <li><b>\_SB.PCI0.LPCB.EC0.FANG 33026</b> is the <i>ReadAcpiMethod</i></li>
+        <li><b>\_SB.PCI0.LPCB.EC0.FANW 33026 $</b> is the <i>WriteAcpiMethod</i></li>
+        <li><b>\_SB.PCI0.LPCB.EC0.FANW 33026 0xFF</b> is the <i>ResetAcpiMethod</i></li>
+        <li><i>0</i> is the <i>MinSpeedValue</i></li>
+        <li><i>255</i> is the <i>MaxSpeedValue</i></li>
+      </ul>
+
+      <p>
+        Because the ACPI firmware overrides the fan speed, we set <i>EcPollInterval</i> to <i>500</i> milliseconds to maintain control.
+      </p>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/nbfc-linux/blob/main/share/nbfc/configs/Packard%20Bell%20EasyNote%20TK85.json">GitHub</a>
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "\\_SB.PCI0.LPCB.EC0.FANG": {"type": "method", "mode": "read"},
+      "\\_SB.PCI0.LPCB.EC0.FANW": {"type": "method", "mode": "write"}
+    }
+  -->
+
+  <footer>
+    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
