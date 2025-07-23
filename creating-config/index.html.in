@@ -14,7 +14,7 @@
   <main>
     <section id="start">
       <p>
-        To create a model configuration file for NBFC-Linux, you will need to analyze
+        To create a model configuration file for NBFC-Linux, you need to analyze
         the DSDT of your ACPI firmware to discover the registers and methods for controlling the fan.
 
         <br />
@@ -33,15 +33,15 @@
     </section>
 
     <section id="install">
-      <h2>Install required programs / modules</h2>
+      <h2>Installing Required Tools</h2>
       <p>
-        <b>Install the following programs / modules</b>
+        <b>Install the following programs / kernel modules</b>
       </p>
 
       <ul>
         <li><code>stress</code> -- to stress the systems so fans spin up</li>
         <li><code>acpica</code> -- for disassembling the DSDT</li>
-        <li><code>acpicall</code> -- for invoking ACPI methods (via <code>ec_probe</code>)</li>
+        <li><code>acpicall</code> -- kernel module for invoking ACPI methods (via <code>ec_probe</code>)</li>
       </ul>
 
       <table>
@@ -102,18 +102,18 @@
       <i>Example Output</i>
 
       <pre>
-      [...]
-         \_SB.PC00.LPCB.EC0._REG Method       0x5e8056d96f60 001 Args 2 Len 002D Aml 0x7564f4170c19
-         \_SB.PC00.LPCB.EC0.CMDW Method       0x5e8056d97050 001 Args 2 Len 004E Aml 0x7564f4170c4e
-         \_SB.PC00.LPCB.EC0.FANG Method       0x5e8056da2610 001 Args 1 Len 0009 Aml 0x7564f4171377
-         \_SB.PC00.LPCB.EC0.FANW Method       0x5e8056da2780 001 Args 2 Len 0008 Aml 0x7564f4171387
-         \_SB.PC00.LPCB.EC0.TUVR Method       0x5e8056da9940 001 Args 1 Len 0003 Aml 0x7564f4171396
-         \_SB.PC00.LPCB.EC0.THRO Method       0x5e8056da9a30 001 Args 1 Len 0005 Aml 0x7564f41713a0
-         \_SB.PC00.LPCB.EC0.CLCK Method       0x5e8056da9b20 001 Args 1 Len 0024 Aml 0x7564f41713ac
-         \_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
-         \_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
-         \_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
-      [...]</pre>
+[...]
+\_SB.PC00.LPCB.EC0._REG Method       0x5e8056d96f60 001 Args 2 Len 002D Aml 0x7564f4170c19
+\_SB.PC00.LPCB.EC0.CMDW Method       0x5e8056d97050 001 Args 2 Len 004E Aml 0x7564f4170c4e
+\_SB.PC00.LPCB.EC0.FANG Method       0x5e8056da2610 001 Args 1 Len 0009 Aml 0x7564f4171377
+\_SB.PC00.LPCB.EC0.FANW Method       0x5e8056da2780 001 Args 2 Len 0008 Aml 0x7564f4171387
+\_SB.PC00.LPCB.EC0.TUVR Method       0x5e8056da9940 001 Args 1 Len 0003 Aml 0x7564f4171396
+\_SB.PC00.LPCB.EC0.THRO Method       0x5e8056da9a30 001 Args 1 Len 0005 Aml 0x7564f41713a0
+\_SB.PC00.LPCB.EC0.CLCK Method       0x5e8056da9b20 001 Args 1 Len 0024 Aml 0x7564f41713ac
+\_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
+\_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
+\_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
+[...]</pre>
 
       <h3>Get a list of registers</h3>
 
@@ -122,15 +122,15 @@
       <i>Example Output</i>
 
       <pre>
-      [...]
-         \_SB.PC00.LPCB.EC0.ERIB RegionField  0x60093e6470b0 001 Rgn [ECMM] Off 2E8 Len 10 Acc 01
-         \_SB.PC00.LPCB.EC0.SMST RegionField  0x60093e647120 001 Rgn [ECMM] Off 308 Len 08 Acc 01
-         \_SB.PC00.LPCB.EC0.SMAD RegionField  0x60093e647190 001 Rgn [ECMM] Off 310 Len 08 Acc 01
-         \_SB.PC00.LPCB.EC0.SMCM RegionField  0x60093e647200 001 Rgn [ECMM] Off 318 Len 08 Acc 01
-         \_SB.PC00.LPCB.EC0.SMD0 RegionField  0x60093e647270 001 Rgn [ECMM] Off 320 Len 100 Acc 01
-         \_SB.PC00.LPCB.EC0.BCNT RegionField  0x60093e6472e0 001 Rgn [ECMM] Off 420 Len 08 Acc 01
-         \_SB.PC00.LPCB.EC0.SMAA RegionField  0x60093e647350 001 Rgn [ECMM] Off 428 Len 18 Acc 01
-      [...]</pre>
+[...]
+\_SB.PC00.LPCB.EC0.ERIB RegionField  0x60093e6470b0 001 Rgn [ECMM] Off 2E8 Len 10 Acc 01
+\_SB.PC00.LPCB.EC0.SMST RegionField  0x60093e647120 001 Rgn [ECMM] Off 308 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SMAD RegionField  0x60093e647190 001 Rgn [ECMM] Off 310 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SMCM RegionField  0x60093e647200 001 Rgn [ECMM] Off 318 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SMD0 RegionField  0x60093e647270 001 Rgn [ECMM] Off 320 Len 100 Acc 01
+\_SB.PC00.LPCB.EC0.BCNT RegionField  0x60093e6472e0 001 Rgn [ECMM] Off 420 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SMAA RegionField  0x60093e647350 001 Rgn [ECMM] Off 428 Len 18 Acc 01
+[...]</pre>
 
       <p>
         The offset (<code>Off</code>) is specified in bits (hexadecimal).
@@ -139,13 +139,13 @@
       </p>
 
       <pre>
-      ~ &gt; python
-      Python 3.13.5 (main, Jun 21 2025, 09:35:00) [GCC 15.1.1 20250425] on linux
-      Type "help", "copyright", "credits" or "license" for more information.
-      &gt;&gt;&gt; 0x2E8 // 8
-      93
-      &gt;&gt;&gt; 0x2E8 % 8
-      0</pre>
+~ &gt; python
+Python 3.13.5 (main, Jun 21 2025, 09:35:00) [GCC 15.1.1 20250425] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; 0x2E8 // 8
+93
+&gt;&gt;&gt; 0x2E8 % 8
+0</pre>
 
       <p>
         This yields register number <i>93</i> and a bit offset of <i>0</i>.
