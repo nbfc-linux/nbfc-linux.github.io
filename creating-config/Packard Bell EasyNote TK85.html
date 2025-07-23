@@ -60,7 +60,7 @@
       </p>
 
       <pre>
-for i in $(seq 0 65565); do
+for i in $(seq 0 65535); do
   printf "$i: "
   sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANG' $i
 done &gt; dump_lowfan</pre>
@@ -80,7 +80,7 @@ done &gt; dump_lowfan</pre>
       </p>
 
       <pre>
-for i in $(seq 0 65565); do
+for i in $(seq 0 65535); do
   printf "$i: "
   sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANG' $i
 done &gt; dump_highfan</pre>
