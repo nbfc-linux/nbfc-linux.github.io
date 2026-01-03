@@ -20,6 +20,7 @@ const configs = [
  "Acer Aspire A515-48M",
  "Acer Aspire A715-41G",
  "Acer Aspire E1-522",
+ "Acer Aspire E1-570G",
  "Acer Aspire E1-572G",
  "Acer Aspire E1-772",
  "Acer Aspire E5-471G",
