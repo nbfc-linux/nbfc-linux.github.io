@@ -199,6 +199,8 @@ Type "help", "copyright", "credits" or "license" for more information.
           <code>PFAN</code>,
           <code>FAN1</code>,
           <code>FSW1</code>,
+          <code>FRDC</code>,
+          <code>FTGC</code>,
           <code>RPM1</code>,
           <code>RPM2</code>
 
@@ -210,7 +212,9 @@ Type "help", "copyright", "credits" or "license" for more information.
           <code>GFSD</code>,
           <code>SFSD</code>,
           <code>SFNV</code>,
-          <code>FRSP</code>
+          <code>FRSP</code>,
+          <code>STMM</code>,
+          <code>GFRM</code>
       </p>
     </section>
 
