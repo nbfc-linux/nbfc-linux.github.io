@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Example: Acer Aspire E1-570G</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Example: Acer Aspire E1-570G</h1>
+  </header>
+
+  <main>
+    <section id="analyze">
+      <h2>Analyzing the DSDT DSL</h2>
+
+      <p>
+        By looking at the
+        <a href="https://github.com/nbfc-linux/configs/blob/main/DSDT/Acer%20Aspire%20E1-570G.dsl">DSL file</a>,
+        we find the methods we are interested in:
+      </p>
+
+      <pre>
+        Mutex (FAMX, 0x00)
+        Method (<b>FANG</b>, 1, NotSerialized)
+        {
+            Acquire (FAMX, 0xFFFF)
+            ERIB = Arg0
+            Local0 = ERBD /* \_SB_.PCI0.LPCB.EC0_.ERBD */
+            Release (FAMX)
+            Return (Local0)
+        }
+
+        Method (<b>FANW</b>, 2, NotSerialized)
+        {
+            Acquire (FAMX, 0xFFFF)
+            ERIB = Arg0
+            ERBD = Arg1
+            Release (FAMX)
+            Return (Arg1)
+        }</pre>
+    </section>
+
+    <section id="finding-the-write-arguments">
+      <h2>Finding the Arguments for the Read/Write Method</h2>
+
+      <p>
+        Since we already have a model that uses the <b>FANG</b> / <b>FANW</b> methods, we can reasonably assume that the argument required to read the fan speed is the same.
+        This section does not explain how the argument for <b>FANG</b> / <b>FANW</b> was determined. Please refer to the documentation of <a href="Packard%20Bell%20EasyNote%20TK85.html">Packard Bell EasyNote TK85</a> for a detailed explanation.
+      </p>
+
+      <p>
+        However, we see that <code>sudo ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANG' 33026</code> reports the right fan speed,
+        but these commands do not alter the fan speed:
+      </p>
+
+      <ul>
+        <li><code>sudo ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' 33026 0</code></li>
+        <li><code>sudo ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' 33026 100</code></li>
+        <li><code>sudo ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' 33026 255</code></li>
+      </ul>
+
+      <p>
+        This indicates that <b>FANW</b> requires an additional control argument, likely enabling manual fan override mode before fan speed changes take effect.
+      </p>
+      
+      <p>
+        <b>Note:</b> I already assumed that the needed argument is between <i>33000</i> and <i>34000</i>.
+        This may not be the case for other models. You may change the <code>seq 33000 34000</code> statement in the scripts to <code>seq 0 65535</code>
+      </p>
+
+      <p>
+        We create the following scripts:
+      </p>
+
+      <ul>
+        <li><i>fandump.sh</i>: For dumping the fan's state</li>
+        <li><i>fanrestore.sh</i>: For restoring the fan's state</li>
+        <li><i>fansearch.sh</i>: For searching the additional argument that sets the fan to manual mode</li>
+      </ul>
+
+      <p><i>fandump.sh</i>:</p>
+      <pre>#!/bin/bash
+
+# This script dumps the fan state to STDOUT.
+# Format: &lt;argument&gt;=&lt;value&gt;
+# Usage: sudo ./fandump.sh &gt; dump.txt
+
+for argument in $(seq <b>33000</b> <b>34000</b>); do
+  value=$(ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANG' $argument)
+  echo "$argument=$value"
+done</pre>
+
+      <p><i>fanrestore.sh</i>:</p>
+      <pre>#!/bin/bash
+
+# This script restores the fan state from STDIN.
+# Format: &lt;argument&gt;=&lt;value&gt;
+# Usage: sudo ./fanrestore.sh &lt; dump.txt
+
+while read -r line; do
+  argument="${line%=*}"
+  value="${line#*=}"
+  ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' $argument $value
+  echo "Restored $argument to $value"
+done</pre>
+
+      <p><i>fansearch.sh</i>:</p>
+      <pre>#!/bin/bash
+
+# This script searches for the argument that enables manual fan control.
+# For each argument the value <b>255</b> is written, then the fan speed is set to full speed (<b>FANW 33026 255</b>).
+# This script requires the user to hit enter after each try.
+# The old value of the argument is restored.
+
+# You may remove the <b>read</b> statement and replace it by <b>sleep 1</b> if you don't want to hit enter each time.
+# If the fan speed changes, simply hit <b>CTRL+C</b>
+
+for argument in $(seq <b>33000</b> <b>34000</b>); do
+  old_value=$(ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANG' $argument)
+  echo "argument=$argument (old_value=$old_value)"
+  ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' $argument <b>255</b>
+  ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' 33026 255
+  read
+  ec_probe acpi_call '\_SB_.PCI0.LPCB.EC0.FANW' $argument $old_value
+done</pre>
+
+      <p>
+        First, we make a dump of the fan's state: <code>sudo ./fandump.sh &gt; dump.txt</code>
+      </p>
+
+      <p>
+        Then, we search for the right argument for <b>FANW</b> that enables manual fan control: <code>sudo ./fansearch.sh</code>.
+        The script requires the user to hit <b>Enter</b> after each try.
+      </p>
+
+      <p>
+        We can see that the argument <i>33030</i> enables manual fan control.
+      </p>
+
+      <p>
+        We then look up the original value of argument <i>33030</i> in <b>dump.txt</b>, which is <i>0x8</i>. This will be used to reset the Embedded Controller on application exit to automatic fan control.
+      </p>
+   </section>
+
+    <section id="writing-configuration">
+      <h2>Writing the Configuration File</h2>
+
+      <ul>
+        <li><b>\_SB_.PCI0.LPCB.EC0.FANG 33026</b> is the <i>ReadAcpiMethod</i></li>
+        <li><b>\_SB_.PCI0.LPCB.EC0.FANW 33026 $</b> is the <i>WriteAcpiMethod</i></li>
+        <li><b>\_SB_.PCI0.LPCB.EC0.FANW 33026 0xFF</b> is the <i>ResetAcpiMethod</i></li>
+        <li><i>0</i> is the <i>MinSpeedValue</i></li>
+        <li><i>255</i> is the <i>MaxSpeedValue</i></li>
+      </ul>
+
+      <p>
+        Because argument <i>33030</i> must be set via <b>FANW</b>, an additional <i>RegisterWriteConfigurations</i> entry is required:
+      </p>
+
+      <ul>
+        <li><b>\_SB_.PCI0.LPCB.EC0.FANW 33030 0xFF</b> is the <i>AcpiMethod</i> (and <i>WriteMode</i> has to be set to <i>Call</i>).</li>
+        <li><b>\_SB_.PCI0.LPCB.EC0.FANW 33030 0x8</b> is the <i>ResetAcpiMethod</i> (and <i>ResetWriteMode</i> has to be set to <i>Call</i> + <i>ResetRequired</i> has to be set to <i>true</i>)</li>
+      </ul>
+
+      <p>
+        See the configuration file on <a href="https://github.com/nbfc-linux/configs/blob/main/1.0/configs/Acer%20Aspire%20E1-570G.json">GitHub</a>
+      </p>
+    </section>
+  </main>
+
+  <!--
+    {
+      "\\_SB_.PCI0.LPCB.EC0.FANG 33026": {"type": "method", "mode": "read"},
+      "\\_SB_.PCI0.LPCB.EC0.FANW 33026 $": {"type": "method", "mode": "write"},
+      "\\_SB_.PCI0.LPCB.EC0.FANW 33030 0xFF": {"type": "method", "mode": "misc"}
+    }
+  -->
+
+  <footer>
+    &copy; 2025-2026 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
