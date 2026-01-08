@@ -23,6 +23,7 @@
       </p>
 
       <ul>
+        <li><a href="#introduction">Introduction</a></li>
         <li><a href="#install">Installing Required Tools</a></li>
         <li><a href="#extract">Extracting the Firmware</a></li>
         <li><a href="#analyze">Analyzing the Firmware</a></li>
@@ -32,16 +33,50 @@
       </ul>
     </section>
 
+    <section id="introduction">
+      <h2>Introduction</h2>
+
+      <h3>About the Embedded Controller</h3>
+      <p>
+        Modern laptops rely on an <b>Embedded Controller (EC)</b> to manage a wide range of low-level hardware functions.
+        These typically include <b>keyboard, battery, power management, fan and thermal control, status LEDs, and display backlight control</b>.
+      </p>
+
+      <h3>Caution When Writing to Registers</h3>
+      <p>
+        Accessing EC registers requires <b>extreme care</b>.
+        Never experiment on registers or methods that are not clearly understood.
+      </p>
+
+      <h3>Safe System State During Configuration</h3>
+      <p>
+        When creating or testing a new configuration, the laptop should be in a <b>state where no data can be lost</b>.
+        While interacting with the EC, the system may <b>shut down unexpectedly</b> or become <b>unresponsive</b>.
+      </p>
+
+      <h3>Battery Safety</h3>
+      <p>
+        For maximum safety, the <b>laptop battery should be physically removed if possible</b>.
+        The Embedded Controller directly manages battery logic, and incorrect EC interaction can <b>permanently damage or brick the battery</b>.
+      </p>
+
+      <h3>Resetting the Embedded Controller</h3>
+      <p>
+        In most cases, a <b>misconfigured Embedded Controller can be reset by fully rebooting the laptop</b>, restoring it to its default state.
+        This should not be relied upon as a safety mechanism — careful and deliberate EC interaction is essential.
+      </p>
+    </section >
+
     <section id="install">
       <h2>Installing Required Tools</h2>
       <p>
-        <b>Install the following programs / kernel modules</b>
+        <b>Install the following programs and kernel modules</b>
       </p>
 
       <ul>
-        <li><code>stress</code> -- to stress the systems so fans spin up</li>
+        <li><code>stress</code> -- to stress the system so fans spin up</li>
         <li><code>acpica</code> -- for disassembling the DSDT</li>
-        <li><code>acpicall</code> -- kernel module for invoking ACPI methods (via <code>ec_probe</code>)</li>
+        <li><code>acpi_call</code> -- kernel module for invoking ACPI methods (via <code>ec_probe</code>)</li>
       </ul>
 
       <table>
@@ -57,15 +92,15 @@
             <td><pre>sudo pacman -S acpica acpi_call stress</pre></td>
           </tr>
           <tr>
-            <td>Debian (Bookworm)</td>
+            <td>Debian</td>
             <td><pre>sudo apt install acpica-tools acpi-call stress</pre></td>
           </tr>
           <tr>
-            <td>Fedora 42 (Adams)</td>
+            <td>Fedora</td>
             <td><pre>sudo dnf install acpica-tools acpi_call stress</pre></td>
           </tr>
           <tr>
-            <td>OpenSuse (Tumbleweed)</td>
+            <td>OpenSuse</td>
             <td><pre>sudo zypper install acpica acpi_call stress</pre></td>
           </tr>
         </tbody>
@@ -135,7 +170,7 @@
       <p>
         The offset (<code>Off</code>) is specified in bits (hexadecimal).
 
-        To convert the bit offset into a byte offset and bit position, we open <code>python</code> or <code>ipython</code> and divide the offset by 8, then take the modulo 8:
+        To convert the bit offset into a byte offset and bit position, we open <code>python</code> or <code>ipython</code> and divide the bit offset by 8 to obtain the byte offset, and use modulo 8 to determine the bit position:
       </p>
 
       <pre>
@@ -155,7 +190,7 @@ Type "help", "copyright", "credits" or "license" for more information.
     <section id="methods-and-registers">
       <h2>Finding Methods and Registers</h2>
 
-      When reading your DSDT, try to identify registers and methods with names like:
+      When reading the DSDT, try to identify registers and methods with names like:
 
       <p>
         <b>Registers:</b>
@@ -261,7 +296,7 @@ Type "help", "copyright", "credits" or "license" for more information.
   </main>
 
   <footer>
-    &copy; 2025 NBFC-Linux. Open Source under the GPL 3 License.
+    &copy; 2025-2026 NBFC-Linux. Open Source under the GPL 3 License.
   </footer>
 </body>
 </html>
