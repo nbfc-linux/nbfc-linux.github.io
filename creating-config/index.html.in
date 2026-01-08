@@ -65,6 +65,13 @@
         In most cases, a <b>misconfigured Embedded Controller can be reset by fully rebooting the laptop</b>, restoring it to its default state.
         This should not be relied upon as a safety mechanism — careful and deliberate EC interaction is essential.
       </p>
+
+      <h3>Required Technical Skills</h3>
+      <p>
+        Interacting with the <b>terminal</b> and having a solid understanding of basic <b>Unix commands</b> is essential for following this guide.
+        You should also be comfortable reading and modifying <b>Bash scripts</b>, as well as working with <b>JSON</b> configuration files.
+        Familiarity with these tools is required to safely and effectively create and test model configurations.
+      </p>
     </section >
 
     <section id="install">
