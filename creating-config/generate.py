@@ -4,7 +4,7 @@ import os
 import re
 import json
 
-files = os.listdir('.')
+files = sorted(os.listdir('.'))
 
 METADATA = {}
 EXAMPLE_MODEL_CONFIGS = []
