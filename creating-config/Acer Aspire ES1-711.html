@@ -30,7 +30,7 @@
                 {
                     If (\_SB.ECOK)
                     {
-                        Local0 = \_SB.PCI0.LPCB.EC0.CTMP
+                        Local0 = <b>\_SB.PCI0.LPCB.EC0.CTMP</b>
                         Return (((Local0 * 0x0A) + 0x0AAC))
                     }
                     Else
@@ -48,7 +48,7 @@
         {
             [...]
             Offset (0x58), 
-            CTMP,   8, 
+            <b>CTMP</b>,   8, 
             Offset (0x5A), 
             [...]
         }</pre>
@@ -76,6 +76,10 @@
       <p>
         While <b>CTMP</b> is not a direct fan control register, manipulating its
         value allows us to simulate different CPU temperatures and indirectly trigger fan speed changes.
+      </p>
+
+      <p>
+        <b>WARNING:</b> Writing high values to the <b>CTMP</b> register can cause the laptop to <b>shut down abruptly</b>.
       </p>
 
       <pre>sudo ec_probe write 88 0</pre>
@@ -170,7 +174,8 @@
 
   <!--
     {
-      "0x55": {"type": "register", "mode": "read+write" }
+      "0x55": {"type": "register", "mode": "read+write" },
+      "CTMP": {"type": "register", "mode": "misc" }
     }
   -->
 
