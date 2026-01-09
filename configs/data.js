@@ -72,6 +72,7 @@ const configs = [
  "Acer Swift SF314-54G",
  "Acer Swift SFX14-41G",
  "Acer TravelMate 7730G",
+ "Acer TravelMate P253",
  "Alienware m15 R3",
  "Asus F5SR",
  "Asus G53SX",
