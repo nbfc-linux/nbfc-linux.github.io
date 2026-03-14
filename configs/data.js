@@ -142,6 +142,7 @@ const configs = [
  "Gigabyte Aero15x v8",
  "Gigabyte Aero16",
  "Gigabyte p35w v3",
+ "HP 15 Notebook PC",
  "HP 15-BW00x",
  "HP 245 G7 Notebook PC",
  "HP 620",
