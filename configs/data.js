@@ -145,6 +145,7 @@ const configs = [
  "HP 15 Notebook PC",
  "HP 15-BW00x",
  "HP 245 G7 Notebook PC",
+ "HP 250 G8 Notebook PC",
  "HP 620",
  "HP Compaq 15-s103tx",
  "HP Compaq 615",
