@@ -25,7 +25,6 @@
       <ul>
         <li><a href="#introduction">Introduction</a></li>
         <li><a href="#install">Installing Required Tools</a></li>
-        <li><a href="#extract">Extracting the Firmware</a></li>
         <li><a href="#analyze">Analyzing the Firmware</a></li>
         <li><a href="#methods-and-registers">Finding Methods and Registers</a></li>
         <li><a href="#probing-registers-methods">Probing them on Your Machine</a></li>
@@ -96,102 +95,89 @@
         <tbody>
           <tr>
             <td>Arch Linux</td>
-            <td><pre>sudo pacman -S acpica acpi_call stress</pre></td>
+            <td>
+              <pre>sudo pacman -S acpica acpi_call stress</pre>
+            </td>
           </tr>
           <tr>
             <td>Debian</td>
-            <td><pre>sudo apt install acpica-tools acpi-call stress</pre></td>
+            <td>
+              <pre>sudo apt install acpica-tools acpi-call stress</pre>
+            </td>
           </tr>
           <tr>
             <td>Fedora</td>
-            <td><pre>sudo dnf install acpica-tools acpi_call stress</pre></td>
+            <td>
+              <pre>sudo dnf install acpica-tools stress</pre>
+              The <code>acpi_call</code> kernel module must be installed manually.
+            </td>
           </tr>
           <tr>
             <td>OpenSuse</td>
-            <td><pre>sudo zypper install acpica acpi_call stress</pre></td>
+            <td>
+              <pre>sudo zypper install acpica stress</pre>
+              The <code>acpi_call</code> kernel module must be installed manually.
+            </td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <section id="extract">
-      <h2>Extracting the Firmware</h2>
-
-      <p>
-        <b>Extract the binary ACPI tables</b>
-      </p>
-
-      <p>This will create the file <code>dsdt.dat</code></p>
-
-      <pre>sudo cat /sys/firmware/acpi/tables/DSDT &gt; dsdt.dat</pre>
-
-      <p>
-        <b>Generate the DSL file</b>
-      </p>
-
-      <p>This will create the file <code>dsdt.dsl</code>. You can view it with your favorite text editor.</p>
-
-      <pre>iasl -d dsdt.dat</pre>
-    </section>
-
     <section id="analyze">
       <h2>Analyzing the Firmware</h2>
 
+      <p>
+        The <code>nbfc acpi-dump</code> command acts as a wrapper around <code>acpiexec</code> and <code>iasl</code>.
+        It is also possible to use these tools <a href="analyze_alternative.html">directly</a>.
+      </p>
+
+      <h3>Extracting the Firmware</h3>
+
+      <p>
+        This command creates the file <code>dsdt.dsl</code>.
+        You can view it with your favorite text editor.
+      </p>
+
+      <pre>sudo nbfc acpi-dump dsl &gt; dsdt.dsl</pre>
+
       <h3>Get a list of ACPI methods</h3>
 
-      <pre>acpiexec -b Methods dsdt.dat</pre>
+      <pre>sudo nbfc acpi-dump methods</pre>
 
       <i>Example Output</i>
 
       <pre>
 [...]
-\_SB.PC00.LPCB.EC0._REG Method       0x5e8056d96f60 001 Args 2 Len 002D Aml 0x7564f4170c19
-\_SB.PC00.LPCB.EC0.CMDW Method       0x5e8056d97050 001 Args 2 Len 004E Aml 0x7564f4170c4e
-\_SB.PC00.LPCB.EC0.FANG Method       0x5e8056da2610 001 Args 1 Len 0009 Aml 0x7564f4171377
-\_SB.PC00.LPCB.EC0.FANW Method       0x5e8056da2780 001 Args 2 Len 0008 Aml 0x7564f4171387
-\_SB.PC00.LPCB.EC0.TUVR Method       0x5e8056da9940 001 Args 1 Len 0003 Aml 0x7564f4171396
-\_SB.PC00.LPCB.EC0.THRO Method       0x5e8056da9a30 001 Args 1 Len 0005 Aml 0x7564f41713a0
-\_SB.PC00.LPCB.EC0.CLCK Method       0x5e8056da9b20 001 Args 1 Len 0024 Aml 0x7564f41713ac
-\_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
-\_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
-\_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
+\_SB.PC00.LPCB.EC0.KFCL args=2
+\_SB.PC00.LPCB.EC0.KSFS args=1
+\_SB.PC00.LPCB.EC0.KGFS args=0
+\_SB.PC00.LPCB.EC0.SFSD args=1
+\_SB.PC00.LPCB.EC0.GFSD args=0
+\_SB.PC00.LPCB.EC0.GSHK args=0
+\_SB.PC00.LPCB.EC0.SSHK args=1
 [...]</pre>
 
-      <h3>Get a list of registers</h3>
+      <h3>Get a list of embedded controller registers</h3>
 
-      <pre>acpiexec -b 'Objects RegionField' dsdt.dat</pre>
+      <pre>sudo nbfc acpi-dump ec-registers</pre>
 
       <i>Example Output</i>
 
       <pre>
 [...]
-\_SB.PC00.LPCB.EC0.ERIB RegionField  0x60093e6470b0 001 Rgn [ECMM] Off 2E8 Len 10 Acc 01
-\_SB.PC00.LPCB.EC0.SMST RegionField  0x60093e647120 001 Rgn [ECMM] Off 308 Len 08 Acc 01
-\_SB.PC00.LPCB.EC0.SMAD RegionField  0x60093e647190 001 Rgn [ECMM] Off 310 Len 08 Acc 01
-\_SB.PC00.LPCB.EC0.SMCM RegionField  0x60093e647200 001 Rgn [ECMM] Off 318 Len 08 Acc 01
-\_SB.PC00.LPCB.EC0.SMD0 RegionField  0x60093e647270 001 Rgn [ECMM] Off 320 Len 100 Acc 01
-\_SB.PC00.LPCB.EC0.BCNT RegionField  0x60093e6472e0 001 Rgn [ECMM] Off 420 Len 08 Acc 01
-\_SB.PC00.LPCB.EC0.SMAA RegionField  0x60093e647350 001 Rgn [ECMM] Off 428 Len 18 Acc 01
+\_SB.PC00.LPCB.EC0.TMPO [ECRM] byte=44 byte_hex=0x2C bit=0 total_bit=352 len=8 acc=1
+\_SB.PC00.LPCB.EC0.AFAN [ECRM] byte=45 byte_hex=0x2D bit=0 total_bit=360 len=8 acc=1
+\_SB.PC00.LPCB.EC0.FRDC [ECRM] byte=46 byte_hex=0x2E bit=0 total_bit=368 len=8 acc=1
+\_SB.PC00.LPCB.EC0.FTGC [ECRM] byte=47 byte_hex=0x2F bit=0 total_bit=376 len=8 acc=1
+\_SB.PC00.LPCB.EC0.PLTP [ECRM] byte=48 byte_hex=0x30 bit=0 total_bit=384 len=8 acc=1
+\_SB.PC00.LPCB.EC0.DTMP [ECRM] byte=50 byte_hex=0x32 bit=0 total_bit=400 len=8 acc=1
+\_SB.PC00.LPCB.EC0.FR2C [ECRM] byte=53 byte_hex=0x35 bit=0 total_bit=424 len=8 acc=1
+\_SB.PC00.LPCB.EC0.FT2C [ECRM] byte=54 byte_hex=0x36 bit=0 total_bit=432 len=8 acc=1
+\_SB.PC00.LPCB.EC0.BCVD [ECRM] byte=55 byte_hex=0x37 bit=0 total_bit=440 len=8 acc=1
+\_SB.PC00.LPCB.EC0.SNMD [ECRM] byte=63 byte_hex=0x3F bit=0 total_bit=504 len=8 acc=1
+\_SB.PC00.LPCB.EC0.FRPS [SSRM] byte=9 byte_hex=0x9 bit=0 total_bit=72 len=8 acc=1
 [...]</pre>
 
-      <p>
-        The offset (<code>Off</code>) is specified in bits (hexadecimal).
-
-        To convert the bit offset into a byte offset and bit position, we open <code>python</code> or <code>ipython</code> and divide the bit offset by 8 to obtain the byte offset, and use modulo 8 to determine the bit position:
-      </p>
-
-      <pre>
-~ &gt; python
-Python 3.13.5 (main, Jun 21 2025, 09:35:00) [GCC 15.1.1 20250425] on linux
-Type "help", "copyright", "credits" or "license" for more information.
-&gt;&gt;&gt; 0x2E8 // 8
-93
-&gt;&gt;&gt; 0x2E8 % 8
-0</pre>
-
-      <p>
-        This yields register number <i>93</i> and a bit offset of <i>0</i>.
-      </p>
     </section>
 
     <section id="methods-and-registers">

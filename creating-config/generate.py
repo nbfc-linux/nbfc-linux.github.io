@@ -3,42 +3,33 @@
 import os
 import re
 import json
+from urllib.parse import quote
 
-files = sorted(os.listdir('.'))
-
-METADATA = {}
+FILES = sorted(os.listdir('.'))
+IGNORE = ('index.html', 'index.html.in', 'generate.py', 'analyze_alternative.html')
 EXAMPLE_MODEL_CONFIGS = []
 
-for file in files:
-    if file == 'index.html.in':
-        continue
-
-    if file == 'index.html':
-        continue
-
-    if file == 'generate.py':
-        continue
-
-    basename = os.path.splitext(file)[0]
-
+def extract_metadata_comment(file):
     with open(file, 'r', encoding='UTF-8') as fh:
         content = fh.read()
 
     m = re.search(r'<!--.*-->', content, re.DOTALL)
     if not m:
-        print("Missing metadata comment:", file)
-        continue
+        raise Exception("Missing metadata comment: %s" % file)
 
     comment = m[0]
     comment = comment.replace('<!--', '')
     comment = comment.replace('-->', '')
-    metadata = json.loads(comment)
+    return json.loads(comment)
 
-    METADATA[basename] = metadata
+for file in FILES:
+    if file in IGNORE:
+        continue
 
-for basename, metadata in METADATA.items():
-    registers = []
+    basename = os.path.splitext(file)[0]
+    metadata = extract_metadata_comment(file)
     methods = []
+    registers = []
 
     for item, data in metadata.items():
         if data['type'] == 'register':
@@ -47,11 +38,9 @@ for basename, metadata in METADATA.items():
         if data['type'] == 'method':
             methods.append(f'<b>{item}</b> ({data["mode"]})')
 
-    url = '%s.html' % basename.replace(' ', '%20')
-
     table_row = f'''\
           <tr>
-            <td><a href="{url}">{basename}</a></td>
+            <td><a href="{quote(file)}">{basename}</a></td>
             <td>{', '.join(registers)}</td>
             <td>{', '.join(methods)}</td>
           </tr>'''

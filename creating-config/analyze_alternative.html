@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alternative Analyzation Of The Firmware</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Alternative Analyzation Of The Firmware</h1>
+  </header>
+
+  <main>
+    <section id="start">
+      <p>
+        This page describes an alternative way of analyzing the ACPI firmware
+        by using the <code>acpica</code> tools directly.
+      </p>
+
+      <ul>
+        <li><a href="#extract">Extracting the Firmware</a></li>
+        <li><a href="#methods">Get a list of ACPI methods</a></li>
+        <li><a href="#regions">Get a list of ACPI operation regions</a></li>
+        <li><a href="#registers">Get a list of ACPI registers</a></li>
+      </ul>
+    </section>
+
+    <section id="extract">
+      <h2>Extracting the Firmware</h2>
+
+      <p>
+        <b>Extract the binary ACPI tables</b>
+      </p>
+
+      <p>This will create the file <code>dsdt.dat</code></p>
+
+      <pre>sudo cat /sys/firmware/acpi/tables/DSDT &gt; dsdt.dat</pre>
+
+      <p>
+        <b>Generate the DSL file</b>
+      </p>
+
+      <p>This will create the file <code>dsdt.dsl</code>. You can view it with your favorite text editor.</p>
+
+      <pre>iasl -d dsdt.dat</pre>
+    </section>
+
+    <section id="methods">
+      <h2>Get a list of ACPI methods</h2>
+
+      <pre>acpiexec -b Methods dsdt.dat</pre>
+
+      <i>Example Output</i>
+
+      <pre>
+[...]
+\_SB.PC00.LPCB.EC0._REG Method       0x5e8056d96f60 001 Args 2 Len 002D Aml 0x7564f4170c19
+\_SB.PC00.LPCB.EC0.CMDW Method       0x5e8056d97050 001 Args 2 Len 004E Aml 0x7564f4170c4e
+\_SB.PC00.LPCB.EC0.FANG Method       0x5e8056da2610 001 Args 1 Len 0009 Aml 0x7564f4171377
+\_SB.PC00.LPCB.EC0.FANW Method       0x5e8056da2780 001 Args 2 Len 0008 Aml 0x7564f4171387
+\_SB.PC00.LPCB.EC0.TUVR Method       0x5e8056da9940 001 Args 1 Len 0003 Aml 0x7564f4171396
+\_SB.PC00.LPCB.EC0.THRO Method       0x5e8056da9a30 001 Args 1 Len 0005 Aml 0x7564f41713a0
+\_SB.PC00.LPCB.EC0.CLCK Method       0x5e8056da9b20 001 Args 1 Len 0024 Aml 0x7564f41713ac
+\_SB.PC00.LPCB.EC0.PCLK Method       0x5e8056da9c10 001 Args 0 Len 0004 Aml 0x7564f41713d7
+\_SB.PC00.LPCB.EC0.ITHR Method       0x5e8056da9d00 001 Args 1 Len 0026 Aml 0x7564f41713e2
+\_SB.PC00.LPCB.EC0.IPCL Method       0x5e8056da9df0 001 Args 0 Len 0010 Aml 0x7564f417140f
+[...]</pre>
+    </section>
+
+    <section id="regions">
+      <h2>Get a list of operation regions</h2>
+
+      <pre>acpiexec -b 'Objects Region' dsdt.dat</pre>
+
+      <p>
+        The regions that have the type <code>EmbeddedControl</code> are exposed via the embedded controller.
+      </p>
+
+      <i>Example Output</i>
+
+      <pre>
+[...]
+\_SB.PC00.LPCB.EC0.ERAM Region       0x620cececfac0 001 [EmbeddedControl] Addr 0000000000000000 Len 00FF
+\_SB.PC00.LPCB.EC0.ECRM Region       0x620ceced0250 001 [EmbeddedControl] Addr 0000000000000000 Len 00FF
+\_SB.PC00.LPCB.EC0.SSRM Region       0x620ceced0620 001 [EmbeddedControl] Addr 0000000000000050 Len 000A
+\_SB.PC00.LPCB.EC0.MAIO Region       0x620ceced2520 001 [SystemMemory] Addr 0000000000000000 Len 00FF
+    \_SB.PC00.LPCB.PKBS Region       0x620cecee2de0 001 [SystemIO] Addr 0000000000000060 Len 0005
+    \_SB.PC00.XHCI.XPRT Region       0x620cece7b800 001 [PCI_Config] Addr 0000000000000000 Len 0100
+    \_SB.PC00.XDCI.OTGD Region       0x620cece7e6d0 001 [PCI_Config] Addr 0000000000000000 Len 0100
+    \_SB.PC00.HDAS.HDAR Region       0x620cece7f4c0 001 [PCI_Config] Addr 0000000000000000 Len 0100
+    \_SB.PC00.RP01.PXCS Region       0x620cece892f0 001 [SystemMemory] Addr 00000000000E0000 Len 0C80
+[...]</pre>
+    </section>
+
+    <section id="registers">
+      <h3>Get a list of registers</h3>
+
+      <pre>acpiexec -b 'Objects RegionField' dsdt.dat</pre>
+
+      <p>
+        <b>Note</b>: Only registers with an operation region of the type <code>EmbeddedControl</code> are actually embedded controller registers.
+        In this example, these are <b>ERAM</b> and <b>ECRM</b>.
+      </p>
+
+      <i>Example Output</i>
+
+      <pre>
+[...]
+\_SB.PC00.LPCB.EC0.INDI RegionField  0x5ac2ebacbd30 001 Rgn [ERAM] Off 0E8 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.DMEE RegionField  0x5ac2ebacbda0 001 Rgn [ERAM] Off 100 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.VBPS RegionField  0x5ac2ebacbe10 001 Rgn [ERAM] Off 7A8 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.PMCD RegionField  0x5ac2ebace740 001 Rgn [ECRM] Off 000 Len 20 Acc 04
+\_SB.PC00.LPCB.EC0.S0FL RegionField  0x5ac2ebace7b0 001 Rgn [ECRM] Off 020 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SXF0 RegionField  0x5ac2ebace820 001 Rgn [ECRM] Off 028 Len 08 Acc 01
+\_SB.PC00.LPCB.EC0.SXF1 RegionField  0x5ac2ebace890 001 Rgn [ECRM] Off 030 Len 08 Acc 01
+                  \EFCT RegionField  0x5ac2eb9f64f0 001 Rgn [GNVS] Off 460 Len 08 Acc 01
+                  \EFHT RegionField  0x5ac2eb9f6560 001 Rgn [GNVS] Off 468 Len 08 Acc 01
+                  \VRDE RegionField  0x5ac2eb9f65d0 001 Rgn [GNVS] Off 470 Len 08 Acc 01
+                  \VRAT RegionField  0x5ac2eb9f6640 001 Rgn [GNVS] Off 478 Len 08 Acc 01
+                  \VRPT RegionField  0x5ac2eb9f66b0 001 Rgn [GNVS] Off 480 Len 08 Acc 01
+[...]</pre>
+
+      <p>
+        The offset (<code>Off</code>) is specified in bits (hexadecimal).
+
+        To convert the bit offset into a byte offset and bit position, we open <code>python</code> or <code>ipython</code> and divide the bit offset by 8 to obtain the byte offset, and use modulo 8 to determine the bit position:
+      </p>
+
+      <pre>
+~ &gt; python
+Python 3.13.5 (main, Jun 21 2025, 09:35:00) [GCC 15.1.1 20250425] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; 0x2E8 // 8
+93
+&gt;&gt;&gt; 0x2E8 % 8
+0</pre>
+
+      <p>
+        This yields register number <i>93</i> and a bit offset of <i>0</i>.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025-2026 NBFC-Linux. Open Source under the GPL 3 License.
+  </footer>
+</body>
+</html>
