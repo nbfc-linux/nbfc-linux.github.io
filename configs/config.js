@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     configs.forEach(name => {
       const lower = name.toLowerCase();
       const sim = str_similarity(lower, query);
-      if (sim >= threshold) {
+      if (lower.startsWith(query) || sim >= threshold) {
         const li = document.createElement('li');
         li.textContent = name;
         resultsUl.appendChild(li);
