@@ -116,7 +116,7 @@ for i in $(cat dump_diff); do
   echo "Value $i (press enter)"
   read
   sudo ec_probe acpi_call '\_SB.PCI0.LPCB.EC0.FANW' $i 0xFF
-done &gt; dump_highfan</pre>
+done</pre>
 
       <p>
         We observe that the value <i>33026</i> changes the fan speed.
