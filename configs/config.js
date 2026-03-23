@@ -25,15 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    configs.forEach(name => {
-      const lower = name.toLowerCase();
-      const sim = str_similarity(lower, query);
-      if (lower.startsWith(query) || sim >= threshold) {
+    configs
+      .map(name => {
+        const lower = name.toLowerCase();
+        const sim = str_similarity(lower, query);
+        return { name, lower, sim };
+      })
+      .filter(item =>
+        item.lower.startsWith(query) || item.sim >= threshold
+      )
+      .sort((a, b) => b.sim - a.sim)
+      .forEach(item => {
         const li = document.createElement('li');
-        li.textContent = name;
+        li.textContent = item.name;
         resultsUl.appendChild(li);
-      }
-    });
+      });
 
     if (resultsUl.children.length === 0) {
       resultsUl.innerHTML = '<li>No matches</li>';
