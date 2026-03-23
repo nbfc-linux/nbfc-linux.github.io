@@ -34,7 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(item =>
         item.lower.startsWith(query) || item.sim >= threshold
       )
-      .sort((a, b) => b.sim - a.sim)
+      .sort((a, b) => {
+        const aStarts = a.lower.startsWith(query);
+        const bStarts = b.lower.startsWith(query);
+
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        return b.sim - a.sim
+      })
       .forEach(item => {
         const li = document.createElement('li');
         li.textContent = item.name;
