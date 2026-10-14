@@ -61,14 +61,23 @@ def make_index_html():
         fh.write(content)
 
 def make_config_data_js():
+    config_data = []
+
     url = 'https://api.github.com/repos/nbfc-linux/configs/contents/1.0/configs';
     response = requests.get(url)
     response.raise_for_status()
     files = response.json()
-
-    config_data = []
     for file in files:
         config_data.append(file['name'].replace('.json', ''))
+
+    url = 'https://raw.githubusercontent.com/nbfc-linux/configs/refs/heads/main/1.0/model_support.json'
+    response = requests.get(url)
+    response.raise_for_status()
+    model_database = response.json()
+    for model in model_database.keys():
+        if model == "Input Model Name":
+            continue
+        config_data.append(model)
 
     with open('configs/data.js', 'w', encoding='UTF-8') as fh:
         fh.write('const configs = ')
